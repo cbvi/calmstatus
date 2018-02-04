@@ -34,6 +34,19 @@ destroydisplayinfo(displayinfo *dinfo)
 	dinfo->dpy = NULL;
 }
 
+Atom
+getatom(displayinfo *dinfo, char *atomname)
+{
+	Display *dpy = dinfo->dpy;
+	Atom a;
+
+	if ((a = XInternAtom(dpy, atomname, True)) == None) {
+		err(1, "XInternAtom %s", atomname);
+	}
+
+	return a;
+}
+
 int
 getcurrentworkspace(displayinfo *dinfo)
 {
@@ -46,9 +59,7 @@ getcurrentworkspace(displayinfo *dinfo)
 	unsigned long bytesafter, numret;
 	unsigned long *d;
 
-	if ((a = XInternAtom(dpy, "_NET_CURRENT_DESKTOP", True)) == None) {
-		err(1, "XInternAtom");
-	}
+	a = getatom(dinfo, "_NET_CURRENT_DESKTOP");
 
 	XGetWindowProperty(dpy, w, a, 0, 0x7fffffff, False,
 			XA_CARDINAL, &typeret, &fmtret, &numret,
@@ -77,9 +88,7 @@ getwindowlist(displayinfo *dinfo, unsigned long *szp)
 	unsigned long bytesafter;
 	Window *d;
 
-	if ((a = XInternAtom(dpy, "_NET_CLIENT_LIST", True)) == None) {
-		err(1, "XInternAtom");
-	}
+	a = getatom(dinfo, "_NET_CLIENT_LIST");
 
 	XGetWindowProperty(dpy, w, a, 0, 0x7fffffff, False,
 			XA_WINDOW, &typeret, &fmtret, szp, 
@@ -106,9 +115,7 @@ getworkspaces(displayinfo *dinfo, Window *list, unsigned long sz)
 	unsigned long bytesafter, numret;
 	unsigned long *id;
 
-	if ((a = XInternAtom(dpy, "_NET_WM_DESKTOP", True)) == None) {
-		err(1, "XInternAtom");
-	}
+	a = getatom(dinfo, "_NET_WM_DESKTOP");
 
 	for (l = 0; l < sz; l++) {
 		XGetWindowProperty(dpy, list[l], a, 0, 0x7fffffff, False,
