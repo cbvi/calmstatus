@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <err.h>
 
 #include <X11/Xlib.h>
@@ -132,17 +133,20 @@ int
 main()
 {
 	Window *list;
+	displayinfo *dinfo;
 	unsigned long count;
 
-	displayinfo dinfo;
+	if ((dinfo = calloc(1, sizeof(displayinfo))) == NULL) {
+		err(1, "calloc");
+	}
 
-	getdisplayinfo(&dinfo);
-	getcurrentworkspace(&dinfo);
+	getdisplayinfo(dinfo);
+	getcurrentworkspace(dinfo);
 
-	list = getwindowlist(&dinfo, &count);
-	getworkspaces(&dinfo, list, count);
+	list = getwindowlist(dinfo, &count);
+	getworkspaces(dinfo, list, count);
 
-	destroydisplayinfo(&dinfo);
+	destroydisplayinfo(dinfo);
 	XFree(list);
 
 	return 0;
