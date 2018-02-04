@@ -58,8 +58,6 @@ main()
 	unsigned long bytesafter, numret;
 	Window *d;
 
-	long *p;
-
 	if ((dpy = XOpenDisplay(":0")) == NULL) {
 		err(1, "XOpenDisplay");
 	}
