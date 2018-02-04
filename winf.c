@@ -11,11 +11,15 @@ typedef struct {
 } displayinfo;
 
 void
-getdisplayinfo(displayinfo *dinfo)
+getdisplayinfo(displayinfo **dinfo)
 {
 	Display 	*dpy;
 	Window		 win;
 	int		 scr;
+
+	if ((*dinfo = calloc(1, sizeof(displayinfo))) == NULL) {
+		err(1, "calloc");
+	}
 
 	if ((dpy = XOpenDisplay(NULL)) == NULL) {
 		err(1, "XOpenDisplay");
@@ -24,8 +28,8 @@ getdisplayinfo(displayinfo *dinfo)
 	scr = XDefaultScreen(dpy);
 	win = RootWindow(dpy, scr);
 
-	dinfo->dpy = dpy;
-	dinfo->root = win;
+	(*dinfo)->dpy = dpy;
+	(*dinfo)->root = win;
 }
 
 void
@@ -33,6 +37,7 @@ destroydisplayinfo(displayinfo *dinfo)
 {
 	XCloseDisplay(dinfo->dpy);
 	dinfo->dpy = NULL;
+	free(dinfo);
 }
 
 Atom
@@ -103,12 +108,13 @@ getwindowlist(displayinfo *dinfo, unsigned long *szp)
 }
 
 
-int
+unsigned long *
 getworkspaces(displayinfo *dinfo, Window *list, unsigned long sz)
 {
 	Display *dpy = dinfo->dpy;
 
 	unsigned long l;
+	unsigned long *active;
 
 	Atom a;
 	Atom typeret;
@@ -118,15 +124,19 @@ getworkspaces(displayinfo *dinfo, Window *list, unsigned long sz)
 
 	a = getatom(dinfo, "_NET_WM_DESKTOP");
 
+	if ((active = calloc(sz, sizeof(unsigned long))) == NULL) {
+		err(1, "calloc");
+	}
+
 	for (l = 0; l < sz; l++) {
 		XGetWindowProperty(dpy, list[l], a, 0, 0x7fffffff, False,
 				XA_CARDINAL, &typeret, &fmtret, &numret,
 				&bytesafter, (unsigned char **)&id);
-		printf("%lu\n", *id);
+		active[l] = *id;
 		XFree(id);
 	}
 
-	return 0;
+	return active;
 }
 
 int
@@ -134,19 +144,22 @@ main()
 {
 	Window *list;
 	displayinfo *dinfo;
+	unsigned long *spaces;
 	unsigned long count;
+	unsigned long l;
 
-	if ((dinfo = calloc(1, sizeof(displayinfo))) == NULL) {
-		err(1, "calloc");
-	}
-
-	getdisplayinfo(dinfo);
+	getdisplayinfo(&dinfo);
 	getcurrentworkspace(dinfo);
 
 	list = getwindowlist(dinfo, &count);
-	getworkspaces(dinfo, list, count);
+	spaces = getworkspaces(dinfo, list, count);
+
+	for (l = 0; l < count; l++) {
+		printf("%lu\n", spaces[l]);
+	}
 
 	destroydisplayinfo(dinfo);
+	free(spaces);
 	XFree(list);
 
 	return 0;
