@@ -151,16 +151,19 @@ main()
 	getdisplayinfo(&dinfo);
 	getcurrentworkspace(dinfo);
 
-	list = getwindowlist(dinfo, &count);
-	spaces = getworkspaces(dinfo, list, count);
+	for (;;) {
+		list = getwindowlist(dinfo, &count);
+		spaces = getworkspaces(dinfo, list, count);
 
-	for (l = 0; l < count; l++) {
-		printf("%lu\n", spaces[l]);
+		for (l = 0; l < count; l++) {
+			printf("%lu\n", spaces[l]);
+		}
+
+		free(spaces);
+		XFree(list);
 	}
 
 	destroydisplayinfo(dinfo);
-	free(spaces);
-	XFree(list);
 
 	return 0;
 }
