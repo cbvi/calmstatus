@@ -65,18 +65,16 @@ getcurrentworkspace(displayinfo *dinfo)
 	return 0;
 }
 
-int
-windowlist(displayinfo *dinfo)
+Window *
+getwindowlist(displayinfo *dinfo, unsigned long *szp)
 {
 	Display *dpy = dinfo->dpy;
 	Window w = dinfo->root;
 
-	unsigned long i;
-
 	Atom a;
 	Atom typeret;
 	int fmtret;
-	unsigned long bytesafter, numret;
+	unsigned long bytesafter;
 	Window *d;
 
 	if ((a = XInternAtom(dpy, "_NET_CLIENT_LIST", True)) == None) {
@@ -84,28 +82,40 @@ windowlist(displayinfo *dinfo)
 	}
 
 	XGetWindowProperty(dpy, w, a, 0, 0x7fffffff, False,
-			XA_WINDOW, &typeret, &fmtret, &numret,
+			XA_WINDOW, &typeret, &fmtret, szp, 
 			&bytesafter, (unsigned char **)&d);
 
-	if (numret == 0) {
+	if (*szp == 0) {
 		err(1, "XGetWindowProperty _NET_CLIENT_LIST");
 	}
+
+	return d;
+}
+
+
+int
+getworkspaces(displayinfo *dinfo, Window *list, unsigned long sz)
+{
+	Display *dpy = dinfo->dpy;
+
+	unsigned long l;
+
+	Atom a;
+	Atom typeret;
+	int fmtret;
+	unsigned long bytesafter, numret;
+	unsigned long *id;
 
 	if ((a = XInternAtom(dpy, "_NET_WM_DESKTOP", True)) == None) {
 		err(1, "XInternAtom");
 	}
 
-	for (i = 0; i < numret; i++) {
-		unsigned long *l;
-		Atom wtyperet;
-		int wfmtret;
-		unsigned long wbytesafter, wnumret;
-
-		XGetWindowProperty(dpy, d[i], a, 0, 0x7fffffff, False,
-				XA_CARDINAL, &wtyperet, &wfmtret, &wnumret,
-				&wbytesafter, (unsigned char **)&l);
-		printf("%lu\n", *l);
-		XFree(l);
+	for (l = 0; l < sz; l++) {
+		XGetWindowProperty(dpy, list[l], a, 0, 0x7fffffff, False,
+				XA_CARDINAL, &typeret, &fmtret, &numret,
+				&bytesafter, (unsigned char **)&id);
+		printf("%lu\n", *id);
+		XFree(id);
 	}
 
 	return 0;
@@ -114,14 +124,19 @@ windowlist(displayinfo *dinfo)
 int
 main()
 {
+	Window *list;
+	unsigned long count;
+
 	displayinfo dinfo;
 
 	getdisplayinfo(&dinfo);
 	getcurrentworkspace(&dinfo);
 
-	windowlist(&dinfo);
+	list = getwindowlist(&dinfo, &count);
+	getworkspaces(&dinfo, list, count);
 
 	destroydisplayinfo(&dinfo);
+	XFree(list);
 
 	return 0;
 }
