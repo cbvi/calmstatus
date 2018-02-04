@@ -7,7 +7,6 @@
 typedef struct {
 	Display 	*dpy;
 	Window  	 root;
-	int     	 screen;
 } displayinfo;
 
 void
@@ -26,7 +25,6 @@ getdisplayinfo(displayinfo *dinfo)
 
 	dinfo->dpy = dpy;
 	dinfo->root = win;
-	dinfo->screen = scr;
 }
 
 void
