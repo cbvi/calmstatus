@@ -55,7 +55,7 @@ getcurrentworkspace(displayinfo *dinfo)
 			&bytesafter, (unsigned char **)&d);
 
 	if (numret == 0 || typeret != XA_CARDINAL) {
-		err(1, "XGetWindowProperty");
+		err(1, "XGetWindowProperty _NET_CURRENT_DESKTOP");
 	}
 
 	printf("%lu\n", *d);
@@ -88,7 +88,7 @@ windowlist(displayinfo *dinfo)
 			&bytesafter, (unsigned char **)&d);
 
 	if (numret == 0) {
-		err(1, "blah");
+		err(1, "XGetWindowProperty _NET_CLIENT_LIST");
 	}
 
 	if ((a = XInternAtom(dpy, "_NET_WM_DESKTOP", True)) == None) {
