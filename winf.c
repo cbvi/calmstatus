@@ -44,7 +44,7 @@ getcurrentworkspace(displayinfo *dinfo)
 	Atom typeret;
 	int fmtret;
 	unsigned long bytesafter, numret;
-	unsigned char *d;
+	unsigned long *d;
 
 	if ((a = XInternAtom(dpy, "_NET_CURRENT_DESKTOP", True)) == None) {
 		err(1, "XInternAtom");
@@ -52,13 +52,13 @@ getcurrentworkspace(displayinfo *dinfo)
 
 	XGetWindowProperty(dpy, w, a, 0, 0x7fffffff, False,
 			XA_CARDINAL, &typeret, &fmtret, &numret,
-			&bytesafter, &d);
+			&bytesafter, (unsigned char **)&d);
 
 	if (numret == 0 || typeret != XA_CARDINAL) {
 		err(1, "XGetWindowProperty");
 	}
 
-	printf("%ld\n", (long)*d);
+	printf("%lu\n", *d);
 
 	XFree(d);
 
