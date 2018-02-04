@@ -4,31 +4,53 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+typedef struct {
+	Display 	*dpy;
+	Window  	 root;
+	int     	 screen;
+} displayinfo;
+
+void
+getdisplayinfo(displayinfo *dinfo)
+{
+	Display 	*dpy;
+	Window		 win;
+	int		 scr;
+
+	if ((dpy = XOpenDisplay(NULL)) == NULL) {
+		err(1, "XOpenDisplay");
+	}
+
+	scr = XDefaultScreen(dpy);
+	win = RootWindow(dpy, scr);
+
+	dinfo->dpy = dpy;
+	dinfo->root = win;
+	dinfo->screen = scr;
+}
+
+void
+destroydisplayinfo(displayinfo *dinfo)
+{
+	XCloseDisplay(dinfo->dpy);
+	dinfo->dpy = NULL;
+}
 
 int
-getcurrentworkspace()
+getcurrentworkspace(displayinfo *dinfo)
 {
-	Display *dpy;
-	Atom a;
-	Window w;
-	int screen;
+	Display *dpy = dinfo->dpy;
+	Window w = dinfo->root;
 
+	Atom a;
 	Atom typeret;
 	int fmtret;
 	unsigned long bytesafter, numret;
 	unsigned char *d;
 
-	if ((dpy = XOpenDisplay(":0")) == NULL) {
-		err(1, "XOpenDisplay");
-	}
-	
-	screen = XDefaultScreen(dpy);
-
 	if ((a = XInternAtom(dpy, "_NET_CURRENT_DESKTOP", True)) == None) {
 		err(1, "XInternAtom");
 	}
-
-	w = RootWindow(dpy, screen);
 
 	XGetWindowProperty(dpy, w, a, 0, 0x7fffffff, False,
 			XA_CARDINAL, &typeret, &fmtret, &numret,
@@ -41,34 +63,27 @@ getcurrentworkspace()
 	printf("%ld\n", (long)*d);
 
 	XFree(d);
-	XCloseDisplay(dpy);
+
+	return 0;
 }
 
 int
-main()
+windowlist(displayinfo *dinfo)
 {
-	Display *dpy;
-	Atom a;
-	Window w;
-	int screen;
+	Display *dpy = dinfo->dpy;
+	Window w = dinfo->root;
+
 	unsigned long i;
 
+	Atom a;
 	Atom typeret;
 	int fmtret;
 	unsigned long bytesafter, numret;
 	Window *d;
 
-	if ((dpy = XOpenDisplay(":0")) == NULL) {
-		err(1, "XOpenDisplay");
-	}
-
-	screen = XDefaultScreen(dpy);
-
 	if ((a = XInternAtom(dpy, "_NET_CLIENT_LIST", True)) == None) {
 		err(1, "XInternAtom");
 	}
-
-	w = RootWindow(dpy, screen);
 
 	XGetWindowProperty(dpy, w, a, 0, 0x7fffffff, False,
 			XA_WINDOW, &typeret, &fmtret, &numret,
@@ -94,6 +109,21 @@ main()
 		printf("%lu\n", *l);
 		XFree(l);
 	}
+
+	return 0;
+}
+
+int
+main()
+{
+	displayinfo dinfo;
+
+	getdisplayinfo(&dinfo);
+	getcurrentworkspace(&dinfo);
+
+	windowlist(&dinfo);
+
+	destroydisplayinfo(&dinfo);
 
 	return 0;
 }
