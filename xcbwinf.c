@@ -39,7 +39,7 @@ get_xinfo()
 		err(1, "xcb_connect");
 
 	if ((screen = xcb_aux_get_screen(conn, 0)) == NULL)
-		err(1, "xcb_aux_get_screen");
+		errx(1, "xcb_aux_get_screen");
 
 	xi->conn = conn;
 	xi->root = screen->root;
@@ -64,7 +64,7 @@ get_atom(xinfo_t *xi, const char *name)
 
 	cook = xcb_intern_atom(xi->conn, 1, strlen(name), name);
 	if ((rep = xcb_intern_atom_reply(xi->conn, cook, NULL)) == NULL)
-		err(1, "xcb_intern_atom_reply");
+		errx(1, "xcb_intern_atom_reply");
 
 	ret = rep->atom;
 
