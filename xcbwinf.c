@@ -86,15 +86,15 @@ get_property(xinfo_t *xi, propreq_t *req)
 	atom = get_atom(xi, req->name);
 
 	cook = xcb_get_property(xi->conn, 0, req->win, atom, req->type, 0, 4096);
-	if ((rep = xcb_get_property_reply(xi->conn, cook, NULL)) == NULL)
-		err(1, "xcb_get_property_reply");
-
-	if (rep->length == 0)
-		err(1, "xcb_get_property_reply length = 0");
-
-	res->value = (void *)xcb_get_property_value(rep);
-	res->len = rep->length;
-	res->reply = rep;
+	if ((rep = xcb_get_property_reply(xi->conn, cook, NULL)) != NULL) {
+		res->value = (void *)xcb_get_property_value(rep);
+		res->len = rep->length;
+		res->reply = rep;
+	} else {
+		res->value = NULL;
+		res->len = 0;
+		res->reply = NULL;
+	}
 
 	return res;
 }
@@ -122,6 +122,10 @@ getcurrentdesktop(xinfo_t *xi)
 	req.name = "_NET_CURRENT_DESKTOP";
 
 	res = get_property(xi, &req);
+
+	if (res->len == 0)
+		errx(1, "current desktop returned 0 length");
+
 	l = (uint32_t *)res->value;
 	ret = *l;
 
@@ -144,6 +148,7 @@ getwindowlist(xinfo_t *xi, xcb_window_t **wlist)
 	req.name = "_NET_CLIENT_LIST";
 
 	res = get_property(xi, &req);
+
 	list = (xcb_window_t *)res->value;
 
 	if ((*wlist = calloc(res->len, sizeof(xcb_window_t))) == NULL)
@@ -168,6 +173,7 @@ getactiveworkspaces(xinfo_t *xi, uint32_t **ret)
 	uint32_t sz;
 	uint32_t i;
 	uint32_t *ws;
+	uint32_t realcount;
 
 	sz = getwindowlist(xi, &list);
 
@@ -177,19 +183,23 @@ getactiveworkspaces(xinfo_t *xi, uint32_t **ret)
 	if ((*ret = calloc(sz, sizeof(uint32_t))) == NULL)
 		err(1, "calloc");
 
+	realcount = 0;
+
 	for (i = 0; i < sz; i++) {
 		req.win = list[i];
 		res = get_property(xi, &req);
-		ws = (uint32_t *)res->value;
 
-		(*ret)[i] = *ws;
-
+		if (res->len > 0) {
+			ws = (uint32_t *)res->value;
+			(*ret)[i] = *ws;
+			realcount++;
+		}
 		destroy_property(res);
 	}
 
 	free(list);
 
-	return sz;
+	return realcount;
 }
 
 int
@@ -202,7 +212,7 @@ main()
 
 	xi = get_xinfo();
 
-	getcurrentdesktop(xi);
+	printf("%i\n", getcurrentdesktop(xi));
 	sz = getactiveworkspaces(xi, &wl);
 
 	for (i = 0; i < sz; i++) {
