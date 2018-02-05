@@ -24,6 +24,8 @@ typedef struct {
 	uint32_t len;
 } propres_t;
 
+void * xcalloc(size_t, size_t);
+
 xinfo_t *
 get_xinfo()
 {
@@ -31,8 +33,7 @@ get_xinfo()
 	xcb_connection_t *conn;
 	xcb_screen_t *screen;
 
-	if ((xi = calloc(1, sizeof(xinfo_t))) == NULL)
-		err(1, "calloc");
+	xi = xcalloc(1, sizeof(xinfo_t));
 
 	if ((conn = xcb_connect(NULL, NULL)) == NULL)
 		err(1, "xcb_connect");
@@ -80,8 +81,7 @@ get_property(xinfo_t *xi, propreq_t *req)
 	xcb_atom_t atom;
 	propres_t *res;
 
-	if ((res = calloc(1, sizeof(propres_t))) == NULL)
-		err(1, "calloc");
+	res = xcalloc(1, sizeof(propres_t));
 
 	atom = get_atom(xi, req->name);
 
@@ -107,6 +107,18 @@ destroy_property(propres_t *res)
 	res->value = NULL;
 	res->len = 0;
 	free(res);
+}
+
+void *
+xcalloc(size_t n, size_t sz)
+{
+	void *p;
+
+	if ((p = calloc(n, sz)) == NULL) {
+		warnx("calloc failed allocating %lu * %lu", n, sz);
+		abort();
+	}
+	return p;
 }
 
 uint32_t
@@ -151,8 +163,7 @@ getwindowlist(xinfo_t *xi, xcb_window_t **wlist)
 
 	list = (xcb_window_t *)res->value;
 
-	if ((*wlist = calloc(res->len, sizeof(xcb_window_t))) == NULL)
-		err(1, "calloc");
+	*wlist = xcalloc(res->len, sizeof(xcb_window_t));
 
 	for (i = 0; i < res->len; i++) {
 		(*wlist)[i] = list[i];
@@ -180,8 +191,7 @@ getactiveworkspaces(xinfo_t *xi, uint32_t **ret)
 	req.type = XCB_ATOM_CARDINAL;
 	req.name = "_NET_WM_DESKTOP";
 
-	if ((*ret = calloc(sz, sizeof(uint32_t))) == NULL)
-		err(1, "calloc");
+	*ret = xcalloc(sz, sizeof(uint32_t));
 
 	realcount = 0;
 
