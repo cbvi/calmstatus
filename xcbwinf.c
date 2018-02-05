@@ -12,6 +12,18 @@ typedef struct {
 	xcb_window_t root;
 } xinfo_t;
 
+typedef struct {
+	xcb_window_t win;
+	char *name;
+	xcb_atom_t type;
+} propreq_t;
+
+typedef struct {
+	void *value;
+	xcb_get_property_reply_t *reply;
+	uint32_t len;
+} propres_t;
+
 xinfo_t *
 get_xinfo()
 {
@@ -38,9 +50,7 @@ void
 destroy_xinfo(xinfo_t *xi)
 {
 	free(xi->conn);
-
 	xi->conn = NULL;
-
 	free(xi);
 }
 
@@ -62,28 +72,60 @@ get_atom(xinfo_t *xi, const char *name)
 	return ret;
 }
 
+propres_t *
+get_property(xinfo_t *xi, propreq_t *req)
+{
+	xcb_get_property_cookie_t cook;
+	xcb_get_property_reply_t *rep;
+	xcb_atom_t atom;
+	propres_t *res;
+
+	if ((res = calloc(1, sizeof(propres_t))) == NULL)
+		err(1, "calloc");
+
+	atom = get_atom(xi, req->name);
+
+	cook = xcb_get_property(xi->conn, 0, req->win, atom, req->type, 0, 4096);
+	if ((rep = xcb_get_property_reply(xi->conn, cook, NULL)) == NULL)
+		err(1, "xcb_get_property_reply");
+
+	if (rep->length == 0)
+		err(1, "xcb_get_property_reply length = 0");
+
+	res->value = (void *)xcb_get_property_value(rep);
+	res->len = rep->length;
+	res->reply = rep;
+
+	return res;
+}
+
+void
+destroy_property(propres_t *res)
+{
+	free(res->reply);
+	res->reply = NULL;
+	res->value = NULL;
+	res->len = 0;
+	free(res);
+}
+
 int
 getcurrentdesktop(xinfo_t *xi)
 {
-	xcb_atom_t atom;
-	xcb_get_property_cookie_t procook;
-	xcb_get_property_reply_t *prorep;
-
 	int *l;
+	propreq_t req;
+	propres_t *res;
 
-	atom = get_atom(xi, "_NET_CURRENT_DESKTOP");
+	req.win = xi->root;
+	req.type = XCB_ATOM_CARDINAL;
+	req.name = "_NET_CURRENT_DESKTOP";
 
-	procook = xcb_get_property(xi->conn, 0, xi->root,
-			atom, XCB_ATOM_CARDINAL, 0, 4096);
-	if ((prorep = xcb_get_property_reply(xi->conn, procook, NULL)) == NULL)
-		err(1, "xcb_get_property_reply");
-
-	if (prorep->length == 0)
-		err(1, "xcb_get_property_reply length = 0");
-
-	l = (int *)xcb_get_property_value(prorep);
+	res = get_property(xi, &req);
+	l = (int *)res->value;
 
 	printf("%i\n", *l);
+
+	destroy_property(res);
 
 	return 0;
 }
@@ -91,60 +133,58 @@ getcurrentdesktop(xinfo_t *xi)
 xcb_window_t *
 getwindowlist(xinfo_t *xi, uint32_t *sz)
 {
-	xcb_atom_t atom;
-	xcb_get_property_cookie_t procook;
-	xcb_get_property_reply_t *prorep;
-
 	xcb_window_t *list;
+	xcb_window_t *ret;
+	propreq_t req;
+	propres_t *res;
 	uint32_t i;
 
-	atom = get_atom(xi, "_NET_CLIENT_LIST");
+	req.win = xi->root;
+	req.type = XCB_ATOM_WINDOW;
+	req.name = "_NET_CLIENT_LIST";
 
-	procook = xcb_get_property(xi->conn, 0, xi->root,
-			atom, XCB_ATOM_WINDOW, 0, 4096);
-	if ((prorep = xcb_get_property_reply(xi->conn, procook, NULL)) == NULL)
-		err(1, "xcb_get_property_reply");
+	res = get_property(xi, &req);
+	list = (xcb_window_t *)res->value;
 
-	list = (xcb_window_t *)xcb_get_property_value(prorep);
+	if ((ret = calloc(res->len, sizeof(xcb_window_t))) == NULL)
+		err(1, "calloc");
 
-	for (i = 0; i < prorep->length; i++) {
+	for (i = 0; i < res->len; i++) {
+		ret[i] = list[i];
 		printf("%i\n", list[i]);
 	}
 
-	*sz = prorep->length;
+	*sz = res->len;
 
-	return list;
+	destroy_property(res);
+	return ret;
 }
 
 int
 getactiveworkspaces(xinfo_t *xi)
 {
-	xcb_atom_t atom;
-	xcb_get_property_cookie_t procook;
-	xcb_get_property_reply_t *prorep;
-
 	xcb_window_t *list;
+	propreq_t req;
+	propres_t *res;
 	uint32_t sz;
 	uint32_t i;
 	int *ws;
 
 	list = getwindowlist(xi, &sz);
 
-	atom = get_atom(xi, "_NET_WM_DESKTOP");
+	req.type = XCB_ATOM_CARDINAL;
+	req.name = "_NET_WM_DESKTOP";
 
 	for (i = 0; i < sz; i++) {
-		procook = xcb_get_property(xi->conn, 0, list[i],
-				atom, XCB_ATOM_CARDINAL, 0, 4096);
-		if ((prorep = xcb_get_property_reply(xi->conn, procook, NULL)) == NULL)
-		err(1, "xcb_get_property_reply");
-
-		if (prorep->length == 0)
-			err(1, "xcb_get_property_reply length = 0");
-
-		ws = (int *)xcb_get_property_value(prorep);
+		req.win = list[i];
+		res = get_property(xi, &req);
+		ws = (int *)res->value;
 
 		printf("%i\n", *ws);
+		destroy_property(res);
 	}
+
+	free(list);
 
 	return 0;
 }
