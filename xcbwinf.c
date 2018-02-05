@@ -109,10 +109,11 @@ destroy_property(propres_t *res)
 	free(res);
 }
 
-int
+uint32_t
 getcurrentdesktop(xinfo_t *xi)
 {
-	int *l;
+	uint32_t *l;
+	uint32_t ret;
 	propreq_t req;
 	propres_t *res;
 
@@ -121,13 +122,12 @@ getcurrentdesktop(xinfo_t *xi)
 	req.name = "_NET_CURRENT_DESKTOP";
 
 	res = get_property(xi, &req);
-	l = (int *)res->value;
-
-	printf("%i\n", *l);
+	l = (uint32_t *)res->value;
+	ret = *l;
 
 	destroy_property(res);
 
-	return 0;
+	return ret;
 }
 
 xcb_window_t *
@@ -151,7 +151,6 @@ getwindowlist(xinfo_t *xi, uint32_t *sz)
 
 	for (i = 0; i < res->len; i++) {
 		ret[i] = list[i];
-		printf("%i\n", list[i]);
 	}
 
 	*sz = res->len;
@@ -160,7 +159,7 @@ getwindowlist(xinfo_t *xi, uint32_t *sz)
 	return ret;
 }
 
-int
+uint32_t *
 getactiveworkspaces(xinfo_t *xi)
 {
 	xcb_window_t *list;
@@ -168,36 +167,44 @@ getactiveworkspaces(xinfo_t *xi)
 	propres_t *res;
 	uint32_t sz;
 	uint32_t i;
-	int *ws;
+	uint32_t *ws;
+	uint32_t *ret;
 
 	list = getwindowlist(xi, &sz);
 
 	req.type = XCB_ATOM_CARDINAL;
 	req.name = "_NET_WM_DESKTOP";
 
+	if ((ret = calloc(sz, sizeof(uint32_t))) == NULL)
+		err(1, "calloc");
+
 	for (i = 0; i < sz; i++) {
 		req.win = list[i];
 		res = get_property(xi, &req);
-		ws = (int *)res->value;
+		ws = (uint32_t *)res->value;
 
-		printf("%i\n", *ws);
+		ret[i] = *ws;
+
 		destroy_property(res);
 	}
 
 	free(list);
 
-	return 0;
+	return ret;
 }
 
 int
 main()
 {
 	xinfo_t *xi;
+	uint32_t *aw;
 
 	xi = get_xinfo();
 
 	getcurrentdesktop(xi);
-	getactiveworkspaces(xi);
+	aw = getactiveworkspaces(xi);
+
+	free(aw);
 
 	destroy_xinfo(xi);
 }
