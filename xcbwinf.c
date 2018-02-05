@@ -274,6 +274,9 @@ main()
 
 	xi = get_xinfo();
 
+	if (pledge("stdio", NULL) == -1)
+		err(1, "pledge");
+
 	for (;;) {
 		cur = getcurrentdesktop(xi);
 		sz = getactiveworkspaces(xi, &wl);
