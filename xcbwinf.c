@@ -225,6 +225,28 @@ does_workspace_have_window(uint32_t id, uint32_t *list, uint32_t sz)
 	return 0;
 }
 
+void left() 	{ printf("%s", "%{l}"); }
+void right()	{ printf("%s", "%{r}"); }
+
+void
+print_datetime()
+{
+	time_t clock;
+	struct tm *tp;
+	char buf[32];
+
+	if ((clock = time(NULL)) == -1)
+		err(1, "time");
+
+	if ((tp = localtime(&clock)) == NULL)
+		err(1, "localtime");
+
+	if (strftime(buf, sizeof(buf), "%a %d %b %H:%M", tp) == 0)
+		errx(1, "strftime");
+
+	printf("%s", buf);
+}
+
 void
 print_workspaces(uint32_t cur, uint32_t *list, uint32_t sz)
 {
@@ -240,8 +262,6 @@ print_workspaces(uint32_t cur, uint32_t *list, uint32_t sz)
 		}
 		printf(" ");
 	}
-	printf("\n");
-	fflush(stdout);
 }
 
 int
@@ -258,7 +278,16 @@ main()
 		cur = getcurrentdesktop(xi);
 		sz = getactiveworkspaces(xi, &wl);
 
+		left();
 		print_workspaces(cur, wl, sz);
+
+		right();
+		print_datetime();
+		printf("%s", "  ");
+
+		printf("\n");
+		fflush(stdout);
+
 		free(wl);
 		sleep(1);
 	}
