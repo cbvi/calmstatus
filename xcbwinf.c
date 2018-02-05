@@ -45,9 +45,8 @@ destroy_xinfo(xinfo_t *xi)
 }
 
 int
-getcurrentdesktop()
+getcurrentdesktop(xinfo_t *xi)
 {
-	xinfo_t *xi;
 	xcb_intern_atom_cookie_t atcook;
 	xcb_intern_atom_reply_t *rep;
 
@@ -57,8 +56,6 @@ getcurrentdesktop()
 	int *l;
 
 	const char ncd_name[] = "_NET_CURRENT_DESKTOP";
-
-	xi = get_xinfo();
 
 	atcook = xcb_intern_atom(xi->conn, 1, strlen(ncd_name), ncd_name);
 	if ((rep = xcb_intern_atom_reply(xi->conn, atcook, NULL)) == 0)
@@ -76,15 +73,12 @@ getcurrentdesktop()
 
 	printf("%i\n", *l);
 
-	destroy_xinfo(xi);
-
 	return 0;
 }
 
 xcb_window_t *
-getwindowlist(uint32_t *sz)
+getwindowlist(xinfo_t *xi, uint32_t *sz)
 {
-	xinfo_t *xi;
 	xcb_intern_atom_cookie_t atcook;
 	xcb_intern_atom_reply_t *rep;
 
@@ -95,8 +89,6 @@ getwindowlist(uint32_t *sz)
 	uint32_t i;
 
 	const char ncd_name[] = "_NET_CLIENT_LIST";
-
-	xi = get_xinfo();
 
 	atcook = xcb_intern_atom(xi->conn, 1, strlen(ncd_name), ncd_name);
 	if ((rep = xcb_intern_atom_reply(xi->conn, atcook, NULL)) == 0)
@@ -115,15 +107,12 @@ getwindowlist(uint32_t *sz)
 
 	*sz = prorep->length;
 
-	destroy_xinfo(xi);
-
 	return list;
 }
 
 int
-getactiveworkspaces()
+getactiveworkspaces(xinfo_t *xi)
 {
-	xinfo_t *xi;
 	xcb_intern_atom_cookie_t atcook;
 	xcb_intern_atom_reply_t *rep;
 
@@ -137,9 +126,7 @@ getactiveworkspaces()
 
 	const char ncd_name[] = "_NET_WM_DESKTOP";
 
-	xi = get_xinfo();
-
-	list = getwindowlist(&sz);
+	list = getwindowlist(xi, &sz);
 
 	atcook = xcb_intern_atom(xi->conn, 1, strlen(ncd_name), ncd_name);
 	if ((rep = xcb_intern_atom_reply(xi->conn, atcook, NULL)) == 0)
@@ -159,14 +146,18 @@ getactiveworkspaces()
 		printf("%i\n", *ws);
 	}
 
-	destroy_xinfo(xi);
-
 	return 0;
 }
 
 int
 main()
 {
-	getcurrentdesktop();
-	getactiveworkspaces();
+	xinfo_t *xi;
+
+	xi = get_xinfo();
+
+	getcurrentdesktop(xi);
+	getactiveworkspaces(xi);
+
+	destroy_xinfo(xi);
 }
