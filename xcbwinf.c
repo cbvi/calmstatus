@@ -130,14 +130,15 @@ getcurrentdesktop(xinfo_t *xi)
 	return ret;
 }
 
-xcb_window_t *
-getwindowlist(xinfo_t *xi, uint32_t *sz)
+uint32_t
+getwindowlist(xinfo_t *xi, xcb_window_t **wlist)
 {
 	xcb_window_t *list;
 	xcb_window_t *ret;
 	propreq_t req;
 	propres_t *res;
 	uint32_t i;
+	uint32_t sz;
 
 	req.win = xi->root;
 	req.type = XCB_ATOM_WINDOW;
@@ -146,17 +147,17 @@ getwindowlist(xinfo_t *xi, uint32_t *sz)
 	res = get_property(xi, &req);
 	list = (xcb_window_t *)res->value;
 
-	if ((ret = calloc(res->len, sizeof(xcb_window_t))) == NULL)
+	if ((*wlist = calloc(res->len, sizeof(xcb_window_t))) == NULL)
 		err(1, "calloc");
 
 	for (i = 0; i < res->len; i++) {
-		ret[i] = list[i];
+		(*wlist)[i] = list[i];
 	}
 
-	*sz = res->len;
+	sz = res->len;
 
 	destroy_property(res);
-	return ret;
+	return sz;
 }
 
 uint32_t *
@@ -170,7 +171,7 @@ getactiveworkspaces(xinfo_t *xi)
 	uint32_t *ws;
 	uint32_t *ret;
 
-	list = getwindowlist(xi, &sz);
+	sz = getwindowlist(xi, &list);
 
 	req.type = XCB_ATOM_CARDINAL;
 	req.name = "_NET_WM_DESKTOP";
