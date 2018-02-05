@@ -44,25 +44,37 @@ destroy_xinfo(xinfo_t *xi)
 	free(xi);
 }
 
+xcb_atom_t
+get_atom(xinfo_t *xi, const char *name)
+{
+	xcb_atom_t ret;
+	xcb_intern_atom_cookie_t cook;
+	xcb_intern_atom_reply_t *rep;
+
+	cook = xcb_intern_atom(xi->conn, 1, strlen(name), name);
+	if ((rep = xcb_intern_atom_reply(xi->conn, cook, NULL)) == NULL)
+		err(1, "xcb_intern_atom_reply");
+
+	ret = rep->atom;
+
+	free(rep);
+
+	return ret;
+}
+
 int
 getcurrentdesktop(xinfo_t *xi)
 {
-	xcb_intern_atom_cookie_t atcook;
-	xcb_intern_atom_reply_t *rep;
-
+	xcb_atom_t atom;
 	xcb_get_property_cookie_t procook;
 	xcb_get_property_reply_t *prorep;
 
 	int *l;
 
-	const char ncd_name[] = "_NET_CURRENT_DESKTOP";
-
-	atcook = xcb_intern_atom(xi->conn, 1, strlen(ncd_name), ncd_name);
-	if ((rep = xcb_intern_atom_reply(xi->conn, atcook, NULL)) == 0)
-		err(1, "xcb_intern_atom_reply");
+	atom = get_atom(xi, "_NET_CURRENT_DESKTOP");
 
 	procook = xcb_get_property(xi->conn, 0, xi->root,
-			rep->atom, XCB_ATOM_CARDINAL, 0, 4096);
+			atom, XCB_ATOM_CARDINAL, 0, 4096);
 	if ((prorep = xcb_get_property_reply(xi->conn, procook, NULL)) == NULL)
 		err(1, "xcb_get_property_reply");
 
@@ -79,23 +91,17 @@ getcurrentdesktop(xinfo_t *xi)
 xcb_window_t *
 getwindowlist(xinfo_t *xi, uint32_t *sz)
 {
-	xcb_intern_atom_cookie_t atcook;
-	xcb_intern_atom_reply_t *rep;
-
+	xcb_atom_t atom;
 	xcb_get_property_cookie_t procook;
 	xcb_get_property_reply_t *prorep;
 
 	xcb_window_t *list;
 	uint32_t i;
 
-	const char ncd_name[] = "_NET_CLIENT_LIST";
-
-	atcook = xcb_intern_atom(xi->conn, 1, strlen(ncd_name), ncd_name);
-	if ((rep = xcb_intern_atom_reply(xi->conn, atcook, NULL)) == 0)
-		err(1, "xcb_intern_atom_reply");
+	atom = get_atom(xi, "_NET_CLIENT_LIST");
 
 	procook = xcb_get_property(xi->conn, 0, xi->root,
-			rep->atom, XCB_ATOM_WINDOW, 0, 4096);
+			atom, XCB_ATOM_WINDOW, 0, 4096);
 	if ((prorep = xcb_get_property_reply(xi->conn, procook, NULL)) == NULL)
 		err(1, "xcb_get_property_reply");
 
@@ -113,9 +119,7 @@ getwindowlist(xinfo_t *xi, uint32_t *sz)
 int
 getactiveworkspaces(xinfo_t *xi)
 {
-	xcb_intern_atom_cookie_t atcook;
-	xcb_intern_atom_reply_t *rep;
-
+	xcb_atom_t atom;
 	xcb_get_property_cookie_t procook;
 	xcb_get_property_reply_t *prorep;
 
@@ -124,17 +128,13 @@ getactiveworkspaces(xinfo_t *xi)
 	uint32_t i;
 	int *ws;
 
-	const char ncd_name[] = "_NET_WM_DESKTOP";
-
 	list = getwindowlist(xi, &sz);
 
-	atcook = xcb_intern_atom(xi->conn, 1, strlen(ncd_name), ncd_name);
-	if ((rep = xcb_intern_atom_reply(xi->conn, atcook, NULL)) == 0)
-		err(1, "xcb_intern_atom_reply");
+	atom = get_atom(xi, "_NET_WM_DESKTOP");
 
 	for (i = 0; i < sz; i++) {
 		procook = xcb_get_property(xi->conn, 0, list[i],
-				rep->atom, XCB_ATOM_CARDINAL, 0, 4096);
+				atom, XCB_ATOM_CARDINAL, 0, 4096);
 		if ((prorep = xcb_get_property_reply(xi->conn, procook, NULL)) == NULL)
 		err(1, "xcb_get_property_reply");
 
