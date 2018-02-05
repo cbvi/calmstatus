@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <err.h>
 #include <string.h>
 
@@ -240,6 +241,7 @@ print_workspaces(uint32_t cur, uint32_t *list, uint32_t sz)
 		printf(" ");
 	}
 	printf("\n");
+	fflush(stdout);
 }
 
 int
@@ -252,11 +254,14 @@ main()
 
 	xi = get_xinfo();
 
-	cur = getcurrentdesktop(xi);
-	sz = getactiveworkspaces(xi, &wl);
+	for (;;) {
+		cur = getcurrentdesktop(xi);
+		sz = getactiveworkspaces(xi, &wl);
 
-	print_workspaces(cur, wl, sz);
+		print_workspaces(cur, wl, sz);
+		free(wl);
+		sleep(1);
+	}
 
-	free(wl);
 	destroy_xinfo(xi);
 }
