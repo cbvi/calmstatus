@@ -213,23 +213,50 @@ getactiveworkspaces(xinfo_t *xi, uint32_t **ret)
 }
 
 int
+does_workspace_have_window(uint32_t id, uint32_t *list, uint32_t sz)
+{
+	uint32_t i;
+
+	for (i = 0; i < sz; i++) {
+		if (list[i] == id)
+			return 1;
+	}
+	return 0;
+}
+
+void
+print_workspaces(uint32_t cur, uint32_t *list, uint32_t sz)
+{
+	uint32_t i;
+
+	for (i = 1; i <= 9; i++) {
+		if (i == cur) {
+			printf("!");
+		} else if (does_workspace_have_window(i, list, sz)) {
+			printf("+");
+		} else {
+			printf("-");
+		}
+		printf(" ");
+	}
+	printf("\n");
+}
+
+int
 main()
 {
 	xinfo_t *xi;
+	uint32_t cur;
 	uint32_t sz;
 	uint32_t *wl;
-	uint32_t i;
 
 	xi = get_xinfo();
 
-	printf("%i\n", getcurrentdesktop(xi));
+	cur = getcurrentdesktop(xi);
 	sz = getactiveworkspaces(xi, &wl);
 
-	for (i = 0; i < sz; i++) {
-		printf("%i\n", wl[i]);
-	}
+	print_workspaces(cur, wl, sz);
 
 	free(wl);
-
 	destroy_xinfo(xi);
 }
