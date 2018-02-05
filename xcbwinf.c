@@ -8,14 +8,22 @@
 #include <xcb/xproto.h>
 #include <xcb/xcb_aux.h>
 
+typedef enum {
+	CURRENT_DESKTOP,
+	WINDOW_LIST,
+	WINDOW_DESKTOP,
+	ATOMS_AVAILABLE_MAX
+} atoms_available_t;
+
 typedef struct {
 	xcb_connection_t *conn;
 	xcb_window_t root;
+	xcb_atom_t atoms[ATOMS_AVAILABLE_MAX];
 } xinfo_t;
 
 typedef struct {
 	xcb_window_t win;
-	char *name;
+	atoms_available_t name;
 	xcb_atom_t type;
 } propreq_t;
 
@@ -26,6 +34,7 @@ typedef struct {
 } propres_t;
 
 void * xcalloc(size_t, size_t);
+xcb_atom_t get_atom(xinfo_t *, const char *);
 
 xinfo_t *
 get_xinfo()
@@ -44,6 +53,10 @@ get_xinfo()
 
 	xi->conn = conn;
 	xi->root = screen->root;
+
+	xi->atoms[CURRENT_DESKTOP] = get_atom(xi, "_NET_CURRENT_DESKTOP");
+	xi->atoms[WINDOW_LIST] = get_atom(xi, "_NET_CLIENT_LIST");
+	xi->atoms[WINDOW_DESKTOP] = get_atom(xi, "_NET_WM_DESKTOP");
 
 	return xi;
 }
@@ -84,7 +97,7 @@ get_property(xinfo_t *xi, propreq_t *req)
 
 	res = xcalloc(1, sizeof(propres_t));
 
-	atom = get_atom(xi, req->name);
+	atom = xi->atoms[req->name];
 
 	cook = xcb_get_property(xi->conn, 0, req->win, atom, req->type, 0, 4096);
 	if ((rep = xcb_get_property_reply(xi->conn, cook, NULL)) != NULL) {
@@ -132,7 +145,7 @@ getcurrentdesktop(xinfo_t *xi)
 
 	req.win = xi->root;
 	req.type = XCB_ATOM_CARDINAL;
-	req.name = "_NET_CURRENT_DESKTOP";
+	req.name = CURRENT_DESKTOP;
 
 	res = get_property(xi, &req);
 
@@ -158,7 +171,7 @@ getwindowlist(xinfo_t *xi, xcb_window_t **wlist)
 
 	req.win = xi->root;
 	req.type = XCB_ATOM_WINDOW;
-	req.name = "_NET_CLIENT_LIST";
+	req.name = WINDOW_LIST;
 
 	res = get_property(xi, &req);
 
@@ -190,7 +203,7 @@ getactiveworkspaces(xinfo_t *xi, uint32_t **ret)
 	sz = getwindowlist(xi, &list);
 
 	req.type = XCB_ATOM_CARDINAL;
-	req.name = "_NET_WM_DESKTOP";
+	req.name = WINDOW_DESKTOP;
 
 	*ret = xcalloc(sz, sizeof(uint32_t));
 
