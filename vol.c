@@ -64,15 +64,25 @@ main()
 
 	ctr.dev = master;
 	ctr.type = AUDIO_MIXER_VALUE;
+	ctr.un.value.num_channels = dinf1.un.v.num_channels;
 
-	for (;;) {
 	if (ioctl(fd, AUDIO_MIXER_READ, &ctr) == -1)
-		err(1, "ioctl");
+		err(1, "ioctl: read master");
 
-	raw = ((float)ctr.un.value.level[AUDIO_MIXER_LEVEL_MONO] / AUDIO_MAX_GAIN);
-	pcnt = ceil(raw * 100);
+	raw = ctr.un.value.level[AUDIO_MIXER_LEVEL_MONO];
+	pcnt = ceil((raw / AUDIO_MAX_GAIN) * 100);
 
 	printf("%i\n", pcnt);
-	sleep(1);
+
+	/* channels et al. was filled in when reading master */
+	ctr.dev = mute;
+	ctr.type = AUDIO_MIXER_ENUM;
+	/* XXX set ord to something? */
+
+	if (ioctl(fd, AUDIO_MIXER_READ, &ctr) == -1)
+		err(1, "ioctl: read mute");
+
+	if (ctr.un.ord) {
+		printf("%s\n", "mute");
 	}
 }
