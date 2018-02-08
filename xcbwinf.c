@@ -12,6 +12,8 @@ typedef enum {
 	CURRENT_DESKTOP,
 	WINDOW_LIST,
 	WINDOW_DESKTOP,
+	CURRENT_WINDOW,
+	WINDOW_NAME,
 	ATOMS_AVAILABLE_MAX
 } atoms_available_t;
 
@@ -57,6 +59,8 @@ get_xinfo()
 	xi->atoms[CURRENT_DESKTOP] = get_atom(xi, "_NET_CURRENT_DESKTOP");
 	xi->atoms[WINDOW_LIST] = get_atom(xi, "_NET_CLIENT_LIST");
 	xi->atoms[WINDOW_DESKTOP] = get_atom(xi, "_NET_WM_DESKTOP");
+	xi->atoms[CURRENT_WINDOW] = get_atom(xi, "_NET_ACTIVE_WINDOW");
+	xi->atoms[WINDOW_NAME] = get_atom(xi, "_NET_WM_NAME");
 
 	return xi;
 }
@@ -133,6 +137,29 @@ xcalloc(size_t n, size_t sz)
 		abort();
 	}
 	return p;
+}
+
+xcb_window_t
+getcurrentwindow(xinfo_t *xi)
+{
+	propreq_t req;
+	propres_t *res;
+	xcb_window_t ret;
+
+	req.win = xi->root;
+	req.type = XCB_ATOM_WINDOW;
+	req.name = CURRENT_WINDOW;
+
+	res = get_property(xi, &req);
+
+	if (res->len == 0)
+		errx(1, "couldn't get current window");
+
+	ret = *(xcb_window_t *)res->value;
+
+	destroy_property(res);
+
+	return ret;
 }
 
 uint32_t
@@ -284,6 +311,7 @@ main()
 	uint32_t cur;
 	uint32_t sz;
 	uint32_t *wl;
+	xcb_window_t curwin;
 
 	xi = get_xinfo();
 
@@ -300,6 +328,9 @@ main()
 		right();
 		print_datetime();
 		printf("%s", "  ");
+
+		curwin = getcurrentwindow(xi);
+		printf("%u\n", curwin);
 
 		printf("\n");
 		fflush(stdout);
