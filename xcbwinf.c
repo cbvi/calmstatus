@@ -8,6 +8,8 @@
 #include <xcb/xproto.h>
 #include <xcb/xcb_aux.h>
 
+#define MAX_TITLE_LENGTH 128
+
 typedef enum {
 	CURRENT_DESKTOP,
 	WINDOW_LIST,
@@ -165,7 +167,7 @@ getcurrentwindow(xinfo_t *xi)
 uint32_t
 getcurrentwindowtitle(xinfo_t *xi, char *buf, uint32_t sz)
 {
-	char *ret;
+	uint32_t ret;
 	propreq_t req;
 	propres_t *res;
 
@@ -175,16 +177,17 @@ getcurrentwindowtitle(xinfo_t *xi, char *buf, uint32_t sz)
 
 	res = get_property(xi, &req);
 
-	if (res->len == 0)
-		errx(1, "no window title");
+	if (res->len == 0) {
+		strlcpy(buf, "", sz);
+		goto end;
+	}
 
-	ret = (char *)res->value;
+	strlcpy(buf, (char *)res->value, sz);
 
-	strlcpy(buf, ret, sz);
-
+end:
+	ret = res->len;
 	destroy_property(res);
-
-	return res->len;
+	return ret;
 }
 
 uint32_t
@@ -327,6 +330,15 @@ print_workspaces(uint32_t cur, uint32_t *list, uint32_t sz)
 	}
 }
 
+void
+print_title(xinfo_t *xi)
+{
+	char title[MAX_TITLE_LENGTH];
+
+	getcurrentwindowtitle(xi, title, sizeof(title));
+	printf("%s", title);
+}
+
 int
 main()
 {
@@ -334,7 +346,6 @@ main()
 	uint32_t cur;
 	uint32_t sz;
 	uint32_t *wl;
-	char title[128];
 
 	xi = get_xinfo();
 
@@ -347,13 +358,11 @@ main()
 
 		left();
 		print_workspaces(cur, wl, sz);
+		print_title(xi);
 
 		right();
 		print_datetime();
-		printf("%s\n", "  ");
-
-		getcurrentwindowtitle(xi, title, sizeof(title));
-		printf("%s\n", title);
+		printf("%s", "  ");
 
 		printf("\n");
 		fflush(stdout);
