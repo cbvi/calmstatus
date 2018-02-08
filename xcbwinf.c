@@ -165,7 +165,6 @@ getcurrentwindow(xinfo_t *xi)
 uint32_t
 getcurrentdesktop(xinfo_t *xi)
 {
-	uint32_t *l;
 	uint32_t ret;
 	propreq_t req;
 	propres_t *res;
@@ -179,8 +178,7 @@ getcurrentdesktop(xinfo_t *xi)
 	if (res->len == 0)
 		errx(1, "current desktop returned 0 length");
 
-	l = (uint32_t *)res->value;
-	ret = *l;
+	ret = *(uint32_t *)res->value;
 
 	destroy_property(res);
 
