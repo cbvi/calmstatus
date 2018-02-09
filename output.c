@@ -2,11 +2,9 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include "types.h"
-#include "outfuncs.h"
+#include "calmstatus.h"
 
 pthread_mutex_t mut;
-
 
 void
 init_output()

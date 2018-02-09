@@ -18,4 +18,11 @@ typedef struct {
 	xcb_atom_t atoms[ATOMS_AVAILABLE_MAX];
 } xinfo_t;
 
+void *xcalloc(size_t, size_t);
+
+void print_workspaces(xinfo_t *);
+void print_title(xinfo_t *);
+
+void print_datetime(void);
+
 #endif
