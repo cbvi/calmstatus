@@ -9,24 +9,11 @@
 #include <xcb/xproto.h>
 #include <xcb/xcb_aux.h>
 
+#include "types.h"
+
 #define MAX_TITLE_LENGTH 128
 
 pthread_mutex_t mut;
-
-typedef enum {
-	CURRENT_DESKTOP,
-	WINDOW_LIST,
-	WINDOW_DESKTOP,
-	CURRENT_WINDOW,
-	WINDOW_NAME,
-	ATOMS_AVAILABLE_MAX
-} atoms_available_t;
-
-typedef struct {
-	xcb_connection_t *conn;
-	xcb_window_t root;
-	xcb_atom_t atoms[ATOMS_AVAILABLE_MAX];
-} xinfo_t;
 
 typedef struct {
 	xcb_window_t win;
@@ -39,6 +26,9 @@ typedef struct {
 	xcb_get_property_reply_t *reply;
 	uint32_t len;
 } propres_t;
+
+void init_output(void);
+void do_output(xinfo_t *);
 
 void * xcalloc(size_t, size_t);
 xcb_atom_t get_atom(xinfo_t *, const char *);
@@ -295,8 +285,8 @@ does_workspace_have_window(uint32_t id, uint32_t *list, uint32_t sz)
 	return 0;
 }
 
-void left() 	{ printf("%s", "%{l}"); }
-void right()	{ printf("%s", "%{r}"); }
+static void left() 	{ printf("%s", "%{l}"); }
+static void right()	{ printf("%s", "%{r}"); }
 
 void
 print_datetime()
@@ -318,9 +308,12 @@ print_datetime()
 }
 
 void
-print_workspaces(uint32_t cur, uint32_t *list, uint32_t sz)
+print_workspaces(xinfo_t *xi)
 {
-	uint32_t i;
+	uint32_t i, cur, sz, *list;
+
+	cur = getcurrentdesktop(xi);
+	sz = getactiveworkspaces(xi, &list);
 
 	for (i = 1; i <= 9; i++) {
 		if (i == cur) {
@@ -332,6 +325,8 @@ print_workspaces(uint32_t cur, uint32_t *list, uint32_t sz)
 		}
 		printf(" ");
 	}
+
+	free(list);
 }
 
 void
@@ -368,21 +363,13 @@ unwatch_win(xinfo_t *xi, xcb_window_t win)
 }
 
 void
-do_output(xinfo_t *xi, int urgent)
+do_output(xinfo_t *xi)
 {
-	uint32_t cur, sz, *wl;
-
-	cur = getcurrentdesktop(xi);
-	sz = getactiveworkspaces(xi, &wl);
-
-	if (urgent)
-		pthread_mutex_lock(&mut);
-	else
-		if (pthread_mutex_trylock(&mut) != 0)
-			return;
+	if (pthread_mutex_trylock(&mut) != 0)
+		return;
 
 	left();
-	print_workspaces(cur, wl, sz);
+	print_workspaces(xi);
 	print_title(xi);
 
 	right();
@@ -393,8 +380,6 @@ do_output(xinfo_t *xi, int urgent)
 	fflush(stdout);
 
 	pthread_mutex_unlock(&mut);
-
-	free(wl);
 }
 
 void *
@@ -416,7 +401,7 @@ watch_for_x_changes(void *arg)
 			watch_win(xi, curwin);
 			unwatch_win(xi, prevwin);
 		}
-		do_output(xi, 1);
+		do_output(xi);
 	}
 	return NULL;
 }
@@ -432,11 +417,13 @@ main()
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
 
-	pthread_mutex_init(&mut, NULL);
+	/* init_output(); */
+
+	/* pthread_mutex_init(&mut, NULL); */
 	pthread_create(&th, NULL, watch_for_x_changes, xi);
 
 	for (;;) {
-		do_output(xi, 0);
+		do_output(xi);
 		sleep(2);
 	}
 
