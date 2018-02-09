@@ -1,3 +1,6 @@
+#ifndef _TYPES
+#define _TYPES
+
 #include <xcb/xcb.h>
 
 typedef enum {
@@ -14,3 +17,5 @@ typedef struct {
 	xcb_window_t root;
 	xcb_atom_t atoms[ATOMS_AVAILABLE_MAX];
 } xinfo_t;
+
+#endif
