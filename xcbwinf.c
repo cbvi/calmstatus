@@ -1,14 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <err.h>
+#include <pthread.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
 #include <xcb/xcb_aux.h>
 
 #define MAX_TITLE_LENGTH 128
+
+pthread_mutex_t mut;
 
 typedef enum {
 	CURRENT_DESKTOP,
@@ -165,13 +168,13 @@ getcurrentwindow(xinfo_t *xi)
 }
 
 uint32_t
-getcurrentwindowtitle(xinfo_t *xi, char *buf, uint32_t sz)
+getwindowtitle(xinfo_t *xi, xcb_window_t win, char *buf, uint32_t sz)
 {
 	uint32_t ret;
 	propreq_t req;
 	propres_t *res;
 
-	req.win = getcurrentwindow(xi);
+	req.win = win;
 	req.type = XCB_ATOM_STRING;
 	req.name = WINDOW_NAME;
 
@@ -335,42 +338,109 @@ void
 print_title(xinfo_t *xi)
 {
 	char title[MAX_TITLE_LENGTH];
+	xcb_window_t win;
 
-	getcurrentwindowtitle(xi, title, sizeof(title));
+	win = getcurrentwindow(xi);
+
+	getwindowtitle(xi, win, title, sizeof(title));
+
 	printf("%s", title);
+}
+
+void
+watch_win(xinfo_t *xi, xcb_window_t win)
+{
+	uint32_t values;
+
+	values = XCB_EVENT_MASK_PROPERTY_CHANGE;
+	xcb_change_window_attributes(xi->conn, win,
+	    XCB_CW_EVENT_MASK, &values);
+}
+
+void
+unwatch_win(xinfo_t *xi, xcb_window_t win)
+{
+	uint32_t values;
+
+	values = XCB_EVENT_MASK_NO_EVENT;
+	xcb_change_window_attributes(xi->conn, win,
+	    XCB_CW_EVENT_MASK, &values);
+}
+
+void
+do_output(xinfo_t *xi, int urgent)
+{
+	uint32_t cur, sz, *wl;
+
+	cur = getcurrentdesktop(xi);
+	sz = getactiveworkspaces(xi, &wl);
+
+	if (urgent)
+		pthread_mutex_lock(&mut);
+	else
+		if (pthread_mutex_trylock(&mut) != 0)
+			return;
+
+	left();
+	print_workspaces(cur, wl, sz);
+	print_title(xi);
+
+	right();
+	print_datetime();
+	printf("%s", "  ");
+
+	printf("\n");
+	fflush(stdout);
+
+	pthread_mutex_unlock(&mut);
+
+	free(wl);
+}
+
+void *
+watch_for_x_changes(void *arg)
+{
+	xcb_generic_event_t *ev;
+	xcb_window_t curwin, prevwin;
+	xinfo_t *xi = (xinfo_t *)arg;
+
+	watch_win(xi, xi->root);
+
+	curwin = prevwin = getcurrentwindow(xi);
+	watch_win(xi, curwin);
+
+	while ((ev = xcb_wait_for_event(xi->conn)) != NULL) {
+		prevwin = curwin;
+		curwin = getcurrentwindow(xi);
+		if (curwin != prevwin) {
+			watch_win(xi, curwin);
+			unwatch_win(xi, prevwin);
+		}
+		do_output(xi, 1);
+	}
+	return NULL;
 }
 
 int
 main()
 {
 	xinfo_t *xi;
-	uint32_t cur;
-	uint32_t sz;
-	uint32_t *wl;
+	pthread_t th;
 
 	xi = get_xinfo();
 
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
 
+	pthread_mutex_init(&mut, NULL);
+	pthread_create(&th, NULL, watch_for_x_changes, xi);
+
 	for (;;) {
-		cur = getcurrentdesktop(xi);
-		sz = getactiveworkspaces(xi, &wl);
-
-		left();
-		print_workspaces(cur, wl, sz);
-		print_title(xi);
-
-		right();
-		print_datetime();
-		printf("%s", "  ");
-
-		printf("\n");
-		fflush(stdout);
-
-		free(wl);
-		sleep(1);
+		do_output(xi, 0);
+		sleep(2);
 	}
 
 	destroy_xinfo(xi);
+
+	return 0;
 }
