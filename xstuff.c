@@ -25,7 +25,7 @@ typedef struct {
 	uint32_t len;
 } propres_t;
 
-xcb_atom_t
+static xcb_atom_t
 get_atom(xinfo_t *xi, const char *name)
 {
 	xcb_atom_t ret;
@@ -43,7 +43,7 @@ get_atom(xinfo_t *xi, const char *name)
 	return ret;
 }
 
-xinfo_t *
+static xinfo_t *
 get_xinfo()
 {
 	xinfo_t *xi;
@@ -70,7 +70,7 @@ get_xinfo()
 	return xi;
 }
 
-void
+static void
 destroy_xinfo(xinfo_t *xi)
 {
 	free(xi->conn);
@@ -78,7 +78,7 @@ destroy_xinfo(xinfo_t *xi)
 	free(xi);
 }
 
-propres_t *
+static propres_t *
 get_property(xinfo_t *xi, propreq_t *req)
 {
 	xcb_get_property_cookie_t cook;
@@ -104,7 +104,7 @@ get_property(xinfo_t *xi, propreq_t *req)
 	return res;
 }
 
-void
+static void
 destroy_property(propres_t *res)
 {
 	free(res->reply);
@@ -114,7 +114,7 @@ destroy_property(propres_t *res)
 	free(res);
 }
 
-xcb_window_t
+static xcb_window_t
 getcurrentwindow(xinfo_t *xi)
 {
 	propreq_t req;
@@ -137,7 +137,7 @@ getcurrentwindow(xinfo_t *xi)
 	return ret;
 }
 
-uint32_t
+static uint32_t
 getwindowtitle(xinfo_t *xi, xcb_window_t win, char *buf, uint32_t sz)
 {
 	uint32_t ret;
@@ -164,7 +164,7 @@ end:
 	return ret;
 }
 
-uint32_t
+static uint32_t
 getcurrentdesktop(xinfo_t *xi)
 {
 	uint32_t ret;
@@ -187,7 +187,7 @@ getcurrentdesktop(xinfo_t *xi)
 	return ret;
 }
 
-uint32_t
+static uint32_t
 getwindowlist(xinfo_t *xi, xcb_window_t **wlist)
 {
 	xcb_window_t *list;
@@ -216,7 +216,7 @@ getwindowlist(xinfo_t *xi, xcb_window_t **wlist)
 	return sz;
 }
 
-uint32_t
+static uint32_t
 getactiveworkspaces(xinfo_t *xi, uint32_t **ret)
 {
 	xcb_window_t *list;
@@ -253,7 +253,7 @@ getactiveworkspaces(xinfo_t *xi, uint32_t **ret)
 	return realcount;
 }
 
-int
+static int
 does_workspace_have_window(uint32_t id, uint32_t *list, uint32_t sz)
 {
 	uint32_t i;
@@ -319,7 +319,7 @@ print_title(xinfo_t *xi)
 	printf("%s", title);
 }
 
-void
+static void
 watch_win(xinfo_t *xi, xcb_window_t win)
 {
 	uint32_t values;
@@ -329,7 +329,7 @@ watch_win(xinfo_t *xi, xcb_window_t win)
 	    XCB_CW_EVENT_MASK, &values);
 }
 
-void
+static void
 unwatch_win(xinfo_t *xi, xcb_window_t win)
 {
 	uint32_t values;
@@ -339,7 +339,7 @@ unwatch_win(xinfo_t *xi, xcb_window_t win)
 	    XCB_CW_EVENT_MASK, &values);
 }
 
-void *
+static void *
 watch_for_x_changes(void *arg)
 {
 	xcb_generic_event_t *ev;
