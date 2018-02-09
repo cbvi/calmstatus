@@ -10,7 +10,6 @@ watch_for_datetime_changes(void *arg)
 {
 	time_t clock;
 	struct tm *tp;
-	int offset;
 	xinfo_t *xi;
 
 	xi = (xinfo_t *)arg;
@@ -21,8 +20,7 @@ watch_for_datetime_changes(void *arg)
 	if ((tp = localtime(&clock)) == NULL)
 		err(1, "localtime");
 
-	offset = 60 - tp->tm_sec;
-	sleep(offset);
+	sleep(60 - tp->tm_sec);
 
 	for (;;) {
 		do_output(xi);
