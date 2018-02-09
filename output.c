@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <err.h>
 #include <pthread.h>
 
 #include "calmstatus.h"
@@ -10,6 +11,19 @@ void
 init_output()
 {
 	pthread_mutex_init(&mut, NULL);
+}
+
+void *
+xcalloc(size_t n, size_t sz)
+{
+	void *p;
+
+	if ((p = calloc(n, sz)) == NULL) {
+		warnx("calloc failed allocating %lu * %lu", n, sz);
+		abort();
+	}
+
+	return p;
 }
 
 void left() { printf("%s", "%{l}"); }
