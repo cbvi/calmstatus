@@ -24,6 +24,7 @@ void print_workspaces(xinfo_t *);
 void print_title(xinfo_t *);
 
 void print_datetime(void);
+void *watch_for_datetime_changes(void *);
 
 void init_output(void);
 void do_output(xinfo_t *);

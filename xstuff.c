@@ -348,7 +348,7 @@ int
 main()
 {
 	xinfo_t *xi;
-	pthread_t th;
+	pthread_t x_th, d_th;
 
 	xi = get_xinfo();
 
@@ -357,11 +357,12 @@ main()
 
 	init_output();
 
-	pthread_create(&th, NULL, watch_for_x_changes, xi);
+	pthread_create(&x_th, NULL, watch_for_x_changes, xi);
+	pthread_create(&d_th, NULL, watch_for_datetime_changes, xi);
 
 	for (;;) {
 		do_output(xi);
-		sleep(2);
+		sleep(900);
 	}
 
 	destroy_xinfo(xi);

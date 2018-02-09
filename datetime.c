@@ -1,6 +1,34 @@
 #include <stdio.h>
 #include <err.h>
 #include <time.h>
+#include <unistd.h>
+
+#include "calmstatus.h"
+
+void *
+watch_for_datetime_changes(void *arg)
+{
+	time_t clock;
+	struct tm *tp;
+	int offset;
+	xinfo_t *xi;
+
+	xi = (xinfo_t *)arg;
+
+	if ((clock = time(NULL)) == -1)
+		err(1, "time");
+
+	if ((tp = localtime(&clock)) == NULL)
+		err(1, "localtime");
+
+	offset = 60 - tp->tm_sec;
+	sleep(offset);
+
+	for (;;) {
+		do_output(xi);
+		sleep(60);
+	}
+}
 
 void
 print_datetime()
