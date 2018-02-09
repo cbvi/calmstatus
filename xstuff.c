@@ -25,10 +25,23 @@ typedef struct {
 	uint32_t len;
 } propres_t;
 
-void init_output(void);
-void do_output(xinfo_t *);
+xcb_atom_t
+get_atom(xinfo_t *xi, const char *name)
+{
+	xcb_atom_t ret;
+	xcb_intern_atom_cookie_t cook;
+	xcb_intern_atom_reply_t *rep;
 
-xcb_atom_t get_atom(xinfo_t *, const char *);
+	cook = xcb_intern_atom(xi->conn, 1, strlen(name), name);
+	if ((rep = xcb_intern_atom_reply(xi->conn, cook, NULL)) == NULL)
+		errx(1, "xcb_intern_atom_reply");
+
+	ret = rep->atom;
+
+	free(rep);
+
+	return ret;
+}
 
 xinfo_t *
 get_xinfo()
@@ -63,24 +76,6 @@ destroy_xinfo(xinfo_t *xi)
 	free(xi->conn);
 	xi->conn = NULL;
 	free(xi);
-}
-
-xcb_atom_t
-get_atom(xinfo_t *xi, const char *name)
-{
-	xcb_atom_t ret;
-	xcb_intern_atom_cookie_t cook;
-	xcb_intern_atom_reply_t *rep;
-
-	cook = xcb_intern_atom(xi->conn, 1, strlen(name), name);
-	if ((rep = xcb_intern_atom_reply(xi->conn, cook, NULL)) == NULL)
-		errx(1, "xcb_intern_atom_reply");
-
-	ret = rep->atom;
-
-	free(rep);
-
-	return ret;
 }
 
 propres_t *

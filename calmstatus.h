@@ -25,4 +25,7 @@ void print_title(xinfo_t *);
 
 void print_datetime(void);
 
+void init_output(void);
+void do_output(xinfo_t *);
+
 #endif
