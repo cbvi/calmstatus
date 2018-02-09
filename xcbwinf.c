@@ -108,7 +108,7 @@ get_property(xinfo_t *xi, propreq_t *req)
 	cook = xcb_get_property(xi->conn, 0, req->win, atom, req->type, 0, 4096);
 	if ((rep = xcb_get_property_reply(xi->conn, cook, NULL)) != NULL) {
 		res->value = (void *)xcb_get_property_value(rep);
-		res->len = rep->length;
+		res->len = rep->value_len;
 		res->reply = rep;
 	} else {
 		res->value = NULL;
@@ -182,6 +182,7 @@ getcurrentwindowtitle(xinfo_t *xi, char *buf, uint32_t sz)
 		goto end;
 	}
 
+	((char *)res->value)[res->len] = '\0';
 	strlcpy(buf, (char *)res->value, sz);
 
 end:
