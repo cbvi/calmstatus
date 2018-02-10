@@ -370,7 +370,7 @@ int
 main()
 {
 	info_t *info;
-	pthread_t x_th, d_th;
+	pthread_t x_th, d_th, s_th;
 
 	info = get_info();
 
@@ -383,6 +383,7 @@ main()
 
 	pthread_create(&x_th, NULL, watch_for_x_changes, info);
 	pthread_create(&d_th, NULL, watch_for_datetime_changes, info);
+	pthread_create(&s_th, NULL, watch_for_volume_changes, info);
 
 	for (;;) {
 		do_output(info);

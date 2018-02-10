@@ -38,6 +38,7 @@ void print_datetime(void);
 void *watch_for_datetime_changes(void *);
 
 void print_volume(soundinfo_t *);
+void *watch_for_volume_changes(void *);
 soundinfo_t *get_soundinfo(void);
 void destroy_soundinfo(soundinfo_t *);
 

@@ -164,3 +164,35 @@ print_volume(soundinfo_t *si)
 	printf("%i", volume);
 	printf("%s", ms ? " (muted) " : "");
 }
+
+void *
+watch_for_volume_changes(void *arg)
+{
+	info_t *info;
+	soundinfo_t *si;
+	int pvol = -1, pmute = -1;
+	int volume, mute;
+	int ischanging = 0;
+
+	info = (info_t *)arg;
+	si = info->soundinfo;
+
+	for (;;) {
+		volume = get_volume_level(si);
+		mute = get_mute_status(si);
+		if (volume != pvol) {
+			do_output(info);
+			ischanging = 1;
+		} else if (mute != pmute) {
+			do_output(info);
+			ischanging = 1;
+		} else
+			ischanging = 0;
+		pvol = volume;
+		pmute = mute;
+		if (ischanging)
+			sleep(1);
+		else
+			sleep(3);
+	}
+}
