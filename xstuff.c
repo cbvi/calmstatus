@@ -41,7 +41,7 @@ get_atom(xinfo_t *xi, const char *name)
 	return ret;
 }
 
-static xinfo_t *
+xinfo_t *
 get_xinfo()
 {
 	xinfo_t *xi;
@@ -341,19 +341,6 @@ watch_for_x_changes(void *arg)
 		do_output(info);
 	}
 	return NULL;
-}
-
-info_t *
-get_info()
-{
-	info_t *info;
-
-	info = xcalloc(1, sizeof(info_t));
-
-	info->xinfo = get_xinfo();
-	info->soundinfo = get_soundinfo();
-
-	return info;
 }
 
 void

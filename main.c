@@ -3,6 +3,19 @@
 
 #include "calmstatus.h"
 
+static info_t *
+get_info()
+{
+	info_t *info;
+
+	info = xcalloc(1, sizeof(info_t));
+
+	info->xinfo = get_xinfo();
+	info->soundinfo = get_soundinfo();
+
+	return info;
+}
+
 int
 main()
 {
