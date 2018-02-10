@@ -31,8 +31,11 @@ typedef struct {
 
 void *xcalloc(size_t, size_t);
 
+info_t *get_info(void);
+
 void print_workspaces(xinfo_t *);
 void print_title(xinfo_t *);
+void *watch_for_x_changes(void *);
 
 void print_datetime(void);
 void *watch_for_datetime_changes(void *);

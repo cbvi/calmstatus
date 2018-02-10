@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <err.h>
-#include <pthread.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
@@ -320,7 +318,7 @@ unwatch_win(xinfo_t *xi, xcb_window_t win)
 	    XCB_CW_EVENT_MASK, &values);
 }
 
-static void *
+void *
 watch_for_x_changes(void *arg)
 {
 	xcb_generic_event_t *ev;
@@ -364,33 +362,4 @@ destroy_info(info_t *info)
 	destroy_xinfo(info->xinfo);
 	destroy_soundinfo(info->soundinfo);
 	free(info);
-}
-
-int
-main()
-{
-	info_t *info;
-	pthread_t x_th, d_th, s_th;
-
-	info = get_info();
-
-	/*
-	if (pledge("stdio audio", NULL) == -1)
-		err(1, "pledge");
-	*/
-
-	init_output();
-
-	pthread_create(&x_th, NULL, watch_for_x_changes, info);
-	pthread_create(&d_th, NULL, watch_for_datetime_changes, info);
-	pthread_create(&s_th, NULL, watch_for_volume_changes, info);
-
-	for (;;) {
-		do_output(info);
-		sleep(900);
-	}
-
-	destroy_info(info);
-
-	return 0;
 }
