@@ -24,6 +24,11 @@ typedef struct {
 	int mute;
 } soundinfo_t;
 
+typedef struct {
+	xinfo_t *xinfo;
+	soundinfo_t *soundinfo;
+} info_t;
+
 void *xcalloc(size_t, size_t);
 
 void print_workspaces(xinfo_t *);
@@ -32,7 +37,11 @@ void print_title(xinfo_t *);
 void print_datetime(void);
 void *watch_for_datetime_changes(void *);
 
+void print_volume(soundinfo_t *);
+soundinfo_t *get_soundinfo(void);
+void destroy_soundinfo(soundinfo_t *);
+
 void init_output(void);
-void do_output(xinfo_t *);
+void do_output(info_t *);
 
 #endif

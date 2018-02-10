@@ -325,7 +325,8 @@ watch_for_x_changes(void *arg)
 {
 	xcb_generic_event_t *ev;
 	xcb_window_t curwin, prevwin;
-	xinfo_t *xi = (xinfo_t *)arg;
+	info_t *info = (info_t *)arg;
+	xinfo_t *xi = info->xinfo;
 
 	watch_win(xi, xi->root);
 
@@ -339,33 +340,56 @@ watch_for_x_changes(void *arg)
 			watch_win(xi, curwin);
 			unwatch_win(xi, prevwin);
 		}
-		do_output(xi);
+		do_output(info);
 	}
 	return NULL;
+}
+
+info_t *
+get_info()
+{
+	info_t *info;
+
+	info = xcalloc(1, sizeof(info_t));
+
+	info->xinfo = get_xinfo();
+	info->soundinfo = get_soundinfo();
+
+	return info;
+}
+
+void
+destroy_info(info_t *info)
+{
+	destroy_xinfo(info->xinfo);
+	destroy_soundinfo(info->soundinfo);
+	free(info);
 }
 
 int
 main()
 {
-	xinfo_t *xi;
+	info_t *info;
 	pthread_t x_th, d_th;
 
-	xi = get_xinfo();
+	info = get_info();
 
-	if (pledge("stdio", NULL) == -1)
+	/*
+	if (pledge("stdio audio", NULL) == -1)
 		err(1, "pledge");
+	*/
 
 	init_output();
 
-	pthread_create(&x_th, NULL, watch_for_x_changes, xi);
-	pthread_create(&d_th, NULL, watch_for_datetime_changes, xi);
+	pthread_create(&x_th, NULL, watch_for_x_changes, info);
+	pthread_create(&d_th, NULL, watch_for_datetime_changes, info);
 
 	for (;;) {
-		do_output(xi);
+		do_output(info);
 		sleep(900);
 	}
 
-	destroy_xinfo(xi);
+	destroy_info(info);
 
 	return 0;
 }

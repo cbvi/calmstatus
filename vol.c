@@ -11,8 +11,6 @@
 
 #include "calmstatus.h"
 
-void *calloc(size_t, size_t);
-
 int
 get_mixer()
 {
@@ -138,7 +136,7 @@ get_soundinfo()
 	soundinfo_t *si;
 	int output;
 
-	si = calloc(1, sizeof(soundinfo_t));
+	si = xcalloc(1, sizeof(soundinfo_t));
 
 	si->mixer = get_mixer();
 	output = get_output(si->mixer);
@@ -165,11 +163,4 @@ print_volume(soundinfo_t *si)
 
 	printf("%i", volume);
 	printf("%s", ms ? " (muted) " : "");
-}
-
-int
-main()
-{
-	soundinfo_t *si = get_soundinfo();
-	print_volume(si);
 }

@@ -30,16 +30,19 @@ void left() { printf("%s", "%{l}"); }
 void right() { printf("%s", "%{r}"); }
 
 void
-do_output(xinfo_t *xi)
+do_output(info_t *info)
 {
 	if (pthread_mutex_trylock(&mut) != 0)
 		return;
 
 	left();
-	print_workspaces(xi);
-	print_title(xi);
+	print_workspaces(info->xinfo);
+	print_title(info->xinfo);
 
 	right();
+	printf(" ");
+	print_volume(info->soundinfo);
+	printf(" ");
 	print_datetime();
 	printf("%s", "  ");
 

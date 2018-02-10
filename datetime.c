@@ -10,9 +10,9 @@ watch_for_datetime_changes(void *arg)
 {
 	time_t clock;
 	struct tm *tp;
-	xinfo_t *xi;
+	info_t *info;
 
-	xi = (xinfo_t *)arg;
+	info = (info_t *)arg;
 
 	if ((clock = time(NULL)) == -1)
 		err(1, "time");
@@ -23,7 +23,7 @@ watch_for_datetime_changes(void *arg)
 	sleep(60 - tp->tm_sec);
 
 	for (;;) {
-		do_output(xi);
+		do_output(info);
 		sleep(60);
 	}
 }
