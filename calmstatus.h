@@ -18,6 +18,12 @@ typedef struct {
 	xcb_atom_t atoms[ATOMS_AVAILABLE_MAX];
 } xinfo_t;
 
+typedef struct {
+	int mixer;
+	int master;
+	int mute;
+} soundinfo_t;
+
 void *xcalloc(size_t, size_t);
 
 void print_workspaces(xinfo_t *);

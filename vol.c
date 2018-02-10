@@ -1,11 +1,17 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <err.h>
 #include <fcntl.h>
 #include <math.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <sys/ioctl.h>
 #include <sys/audioio.h>
+
+#include "calmstatus.h"
+
+void *calloc(size_t, size_t);
 
 int
 get_mixer()
@@ -89,17 +95,17 @@ get_mute(int mixer, int output, int master)
 }
 
 int
-get_volume(int mixer, int master)
+get_volume_level(soundinfo_t *si)
 {
 	int pcnt;
 	float raw;
 	mixer_ctrl_t mc;
 
-	mc.dev = master;
+	mc.dev = si->master;
 	mc.type = AUDIO_MIXER_VALUE;
 	mc.un.value.num_channels = 2;
 
-	if (ioctl(mixer, AUDIO_MIXER_READ, &mc) == -1)
+	if (ioctl(si->mixer, AUDIO_MIXER_READ, &mc) == -1)
 		err(1, "AUDIO_MIXER_READ");
 
 	raw = mc.un.value.level[AUDIO_MIXER_LEVEL_MONO];
@@ -109,15 +115,15 @@ get_volume(int mixer, int master)
 }
 
 int
-get_mute_status(int mixer, int mute)
+get_mute_status(soundinfo_t *si)
 {
 	mixer_ctrl_t mc;
 
-	mc.dev = mute;
+	mc.dev = si->mute;
 	mc.type = AUDIO_MIXER_ENUM;
 	mc.un.value.num_channels = 2;
 
-	if (ioctl(mixer, AUDIO_MIXER_READ, &mc) == -1)
+	if (ioctl(si->mixer, AUDIO_MIXER_READ, &mc) == -1)
 		err(1, "AUDIO_MIXER_READ");
 
 	if (mc.un.ord)
@@ -126,17 +132,44 @@ get_mute_status(int mixer, int mute)
 		return 0;
 }
 
+soundinfo_t *
+get_soundinfo()
+{
+	soundinfo_t *si;
+	int output;
+
+	si = calloc(1, sizeof(soundinfo_t));
+
+	si->mixer = get_mixer();
+	output = get_output(si->mixer);
+	si->master = get_master(si->mixer, output);
+	si->mute = get_mute(si->mixer, output, si->master);
+
+	return si;
+}
+
+void
+destroy_soundinfo(soundinfo_t *si)
+{
+	close(si->mixer);
+	free(si);
+}
+
+void
+print_volume(soundinfo_t *si)
+{
+	int volume, ms;
+
+	volume = get_volume_level(si);
+	ms = get_mute_status(si);
+
+	printf("%i", volume);
+	printf("%s", ms ? " (muted) " : "");
+}
+
 int
 main()
 {
-	int fd, output, master, mute, volume, ms;
-
-	fd = get_mixer();
-	output = get_output(fd);
-	master = get_master(fd, output);
-	mute = get_mute(fd, output, master);
-	volume = get_volume(fd, master);
-	ms = get_mute_status(fd, mute);
-
-	printf("%i %i\n", volume, ms);
+	soundinfo_t *si = get_soundinfo();
+	print_volume(si);
 }
