@@ -1,5 +1,5 @@
-#ifndef _TYPES
-#define _TYPES
+#ifndef _CALMSTATUS_H
+#define _CALMSTATUS_H
 
 #include <xcb/xcb.h>
 
