@@ -11,7 +11,7 @@
 
 #include "calmstatus.h"
 
-int
+static int
 volume_get_mixer()
 {
 	int fd;
@@ -22,7 +22,7 @@ volume_get_mixer()
 	return fd;
 }
 
-int
+static int
 volume_get_output_group(int mixer)
 {
 	int output = -1;
@@ -43,7 +43,7 @@ volume_get_output_group(int mixer)
 	return output;
 }
 
-int
+static int
 volume_get_master_device(int mixer, int output)
 {
 	int master = -1;
@@ -64,7 +64,7 @@ volume_get_master_device(int mixer, int output)
 	return master;
 }
 
-int
+static int
 volume_get_mute_device(int mixer, int output, int master)
 {
 	int mute = -1, next = AUDIO_MIXER_LAST;
@@ -92,7 +92,7 @@ volume_get_mute_device(int mixer, int output, int master)
 	return mute;
 }
 
-int
+static int
 volume_get_level(soundinfo_t *si)
 {
 	int pcnt;
@@ -112,7 +112,7 @@ volume_get_level(soundinfo_t *si)
 	return pcnt;
 }
 
-int
+static int
 volume_get_mute(soundinfo_t *si)
 {
 	mixer_ctrl_t mc;
