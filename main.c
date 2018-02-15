@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "calmstatus.h"
@@ -14,6 +15,14 @@ get_info()
 	info->soundinfo = volume_get_soundinfo();
 
 	return info;
+}
+
+void
+destroy_info(info_t *info)
+{
+	destroy_xinfo(info->xinfo);
+	volume_destroy_soundinfo(info->soundinfo);
+	free(info);
 }
 
 int

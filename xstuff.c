@@ -68,7 +68,7 @@ get_xinfo()
 	return xi;
 }
 
-static void
+void
 destroy_xinfo(xinfo_t *xi)
 {
 	free(xi->conn);
@@ -341,12 +341,4 @@ watch_for_x_changes(void *arg)
 		do_output(info);
 	}
 	return NULL;
-}
-
-void
-destroy_info(info_t *info)
-{
-	destroy_xinfo(info->xinfo);
-	volume_destroy_soundinfo(info->soundinfo);
-	free(info);
 }
