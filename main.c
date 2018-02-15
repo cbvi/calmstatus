@@ -11,7 +11,7 @@ get_info()
 	info = xcalloc(1, sizeof(info_t));
 
 	info->xinfo = get_xinfo();
-	info->soundinfo = get_soundinfo();
+	info->soundinfo = volume_get_soundinfo();
 
 	return info;
 }
@@ -28,7 +28,7 @@ main()
 
 	pthread_create(&xth, NULL, watch_for_x_changes, info);
 	pthread_create(&dth, NULL, watch_for_datetime_changes, info);
-	pthread_create(&vth, NULL, watch_for_volume_changes, info);
+	pthread_create(&vth, NULL, volume_watch_for_changes, info);
 
 	for (;;)
 		sleep(60 * 60 * 24);

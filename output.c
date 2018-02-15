@@ -41,7 +41,7 @@ do_output(info_t *info)
 
 	right();
 	printf(" ");
-	print_volume(info->soundinfo);
+	volume_print_volume(info->soundinfo);
 	printf(" ");
 	print_datetime();
 	printf("%s", "  ");

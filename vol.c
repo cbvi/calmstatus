@@ -12,7 +12,7 @@
 #include "calmstatus.h"
 
 int
-get_mixer()
+volume_get_mixer()
 {
 	int fd;
 
@@ -23,7 +23,7 @@ get_mixer()
 }
 
 int
-get_output(int mixer)
+volume_get_output_group(int mixer)
 {
 	int output = -1;
 	mixer_devinfo_t dinf;
@@ -44,7 +44,7 @@ get_output(int mixer)
 }
 
 int
-get_master(int mixer, int output)
+volume_get_master_device(int mixer, int output)
 {
 	int master = -1;
 	mixer_devinfo_t dinf;
@@ -65,7 +65,7 @@ get_master(int mixer, int output)
 }
 
 int
-get_mute(int mixer, int output, int master)
+volume_get_mute_device(int mixer, int output, int master)
 {
 	int mute = -1, next = AUDIO_MIXER_LAST;
 	mixer_devinfo_t dinf;
@@ -93,7 +93,7 @@ get_mute(int mixer, int output, int master)
 }
 
 int
-get_volume_level(soundinfo_t *si)
+volume_get_level(soundinfo_t *si)
 {
 	int pcnt;
 	float raw;
@@ -113,7 +113,7 @@ get_volume_level(soundinfo_t *si)
 }
 
 int
-get_mute_status(soundinfo_t *si)
+volume_get_mute(soundinfo_t *si)
 {
 	mixer_ctrl_t mc;
 
@@ -131,42 +131,42 @@ get_mute_status(soundinfo_t *si)
 }
 
 soundinfo_t *
-get_soundinfo()
+volume_get_soundinfo()
 {
 	soundinfo_t *si;
 	int output;
 
 	si = xcalloc(1, sizeof(soundinfo_t));
 
-	si->mixer = get_mixer();
-	output = get_output(si->mixer);
-	si->master = get_master(si->mixer, output);
-	si->mute = get_mute(si->mixer, output, si->master);
+	si->mixer = volume_get_mixer();
+	output = volume_get_output_group(si->mixer);
+	si->master = volume_get_master_device(si->mixer, output);
+	si->mute = volume_get_mute_device(si->mixer, output, si->master);
 
 	return si;
 }
 
 void
-destroy_soundinfo(soundinfo_t *si)
+volume_destroy_soundinfo(soundinfo_t *si)
 {
 	close(si->mixer);
 	free(si);
 }
 
 void
-print_volume(soundinfo_t *si)
+volume_print_volume(soundinfo_t *si)
 {
 	int volume, ms;
 
-	volume = get_volume_level(si);
-	ms = get_mute_status(si);
+	volume = volume_get_level(si);
+	ms = volume_get_mute(si);
 
 	printf("%i", volume);
 	printf("%s", ms ? " (muted) " : "");
 }
 
 void *
-watch_for_volume_changes(void *arg)
+volume_watch_for_changes(void *arg)
 {
 	info_t *info;
 	soundinfo_t *si;
@@ -178,8 +178,8 @@ watch_for_volume_changes(void *arg)
 	si = info->soundinfo;
 
 	for (;;) {
-		volume = get_volume_level(si);
-		mute = get_mute_status(si);
+		volume = volume_get_level(si);
+		mute = volume_get_mute(si);
 		if (volume != pvol) {
 			do_output(info);
 			ischanging = 1;

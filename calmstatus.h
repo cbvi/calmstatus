@@ -39,10 +39,10 @@ void *watch_for_x_changes(void *);
 void print_datetime(void);
 void *watch_for_datetime_changes(void *);
 
-soundinfo_t *get_soundinfo(void);
-void print_volume(soundinfo_t *);
-void *watch_for_volume_changes(void *);
-void destroy_soundinfo(soundinfo_t *);
+soundinfo_t *volume_get_soundinfo(void);
+void volume_print_volume(soundinfo_t *);
+void *volume_watch_for_changes(void *);
+void volume_destroy_soundinfo(soundinfo_t *);
 
 void init_output(void);
 void do_output(info_t *);

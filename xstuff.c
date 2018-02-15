@@ -347,6 +347,6 @@ void
 destroy_info(info_t *info)
 {
 	destroy_xinfo(info->xinfo);
-	destroy_soundinfo(info->soundinfo);
+	volume_destroy_soundinfo(info->soundinfo);
 	free(info);
 }
