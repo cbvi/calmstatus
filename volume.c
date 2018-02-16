@@ -207,6 +207,9 @@ volume_level(struct imsgbuf *ibuf)
 	priv_send_cmd(ibuf, CMD_VOLUME_LEVEL);
 	priv_get_res(ibuf, &imsg);
 
+	if ((imsg.hdr.len - IMSG_HEADER_SIZE) != sizeof(res))
+			err(1, "volume_level: response wrong size");
+
 	res = *(int *)imsg.data;
 	imsg_free(&imsg);
 
@@ -221,6 +224,9 @@ volume_mute(struct imsgbuf *ibuf)
 
 	priv_send_cmd(ibuf, CMD_VOLUME_MUTE);
 	priv_get_res(ibuf, &imsg);
+
+	if ((imsg.hdr.len - IMSG_HEADER_SIZE) != sizeof(res))
+			err(1, "volume_mute: response wrong size");
 
 	res = *(int *)imsg.data;
 
