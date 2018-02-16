@@ -59,6 +59,9 @@ priv_get_cmd(struct imsgbuf *ibuf)
 	if ((imsg_get(ibuf, &imsg)) == -1)
 		errx(1, "imsg_get");
 
+	if ((imsg.hdr.len - IMSG_HEADER_SIZE) != 0)
+		err(1, "priv_get_cmd: msg wrong size");
+
 	return imsg.hdr.type;
 }
 
