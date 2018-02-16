@@ -32,6 +32,8 @@ void right() { printf("%s", "%{r}"); }
 void
 do_output(info_t *info)
 {
+	int level, mute;
+
 	if (pthread_mutex_trylock(&mut) != 0)
 		return;
 
@@ -41,7 +43,12 @@ do_output(info_t *info)
 
 	right();
 	printf(" ");
-	volume_print_volume(info->soundinfo);
+
+	/* volume_print_volume(info->soundinfo); */
+	level = volume_level(info->privinfo->sound);
+	mute = volume_mute(info->privinfo->sound);
+	printf("%i%s", level, mute ? " (muted)" : "");
+
 	printf(" ");
 	print_datetime();
 	printf("%s", "  ");

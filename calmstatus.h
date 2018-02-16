@@ -3,6 +3,8 @@
 
 #include <xcb/xcb.h>
 
+#include "priv.h"
+
 typedef enum {
 	CURRENT_DESKTOP,
 	WINDOW_LIST,
@@ -27,6 +29,7 @@ typedef struct {
 typedef struct {
 	xinfo_t *xinfo;
 	soundinfo_t *soundinfo;
+	privinfo_t *privinfo;
 } info_t;
 
 void *xcalloc(size_t, size_t);
@@ -44,6 +47,9 @@ soundinfo_t *volume_get_soundinfo(void);
 void volume_print_volume(soundinfo_t *);
 void *volume_watch_for_changes(void *);
 void volume_destroy_soundinfo(soundinfo_t *);
+int volume_level(struct imsgbuf *);
+int volume_mute(struct imsgbuf *);
+void volume_main(int fd);
 
 void init_output(void);
 void do_output(info_t *);

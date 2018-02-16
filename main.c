@@ -1,8 +1,11 @@
+#include <sys/socket.h>
+
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "calmstatus.h"
+#include "priv.h"
 
 static info_t *
 get_info()
@@ -30,14 +33,26 @@ main()
 {
 	info_t *info;
 	pthread_t xth, dth, vth;
+	int sock[2];
+
+	if (socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, sock) == -1)
+		err(1, "socketpair");
+
+	if (fork() == 0) {
+		close(sock[0]);
+		volume_main(sock[1]);
+	} else {
+		close(sock[1]);
+	}
 
 	info = get_info();
+	info->privinfo = priv_get_info(sock[0]);
 
 	init_output();
 
 	pthread_create(&xth, NULL, watch_for_x_changes, info);
 	pthread_create(&dth, NULL, watch_for_datetime_changes, info);
-	pthread_create(&vth, NULL, volume_watch_for_changes, info);
+	/* pthread_create(&vth, NULL, volume_watch_for_changes, info); */
 
 	for (;;)
 		sleep(60 * 60 * 24);

@@ -10,6 +10,7 @@
 #include <sys/audioio.h>
 
 #include "calmstatus.h"
+#include "priv.h"
 
 static int
 volume_get_mixer()
@@ -194,5 +195,69 @@ volume_watch_for_changes(void *arg)
 			sleep(1);
 		else
 			sleep(3);
+	}
+}
+
+int
+volume_level(struct imsgbuf *ibuf)
+{
+	struct imsg imsg;
+	int res;
+
+	priv_send_cmd(ibuf, CMD_VOLUME_LEVEL);
+	priv_get_res(ibuf, &imsg);
+
+	res = *(int *)imsg.data;
+	imsg_free(&imsg);
+
+	return res;
+}
+
+int
+volume_mute(struct imsgbuf *ibuf)
+{
+	struct imsg imsg;
+	int res;
+
+	priv_send_cmd(ibuf, CMD_VOLUME_MUTE);
+	priv_get_res(ibuf, &imsg);
+
+	res = *(int *)imsg.data;
+
+	return res;
+}
+
+void
+volume_main(int fd)
+{
+	soundinfo_t *si;
+	struct imsgbuf ibuf;
+	enum priv_cmd cmd;
+	int res;
+
+	si = volume_get_soundinfo();
+
+	imsg_init(&ibuf, fd);
+
+	for (;;) {
+		cmd = priv_get_cmd(&ibuf);
+
+		switch (cmd) {
+		case CMD_VOLUME_LEVEL:
+			res = volume_get_level(si);
+			priv_send_res(&ibuf, RES_VOLUME_LEVEL,
+			    &res, sizeof(res));
+			break;
+		case CMD_VOLUME_MUTE:
+			res = volume_get_mute(si);
+			priv_send_res(&ibuf, RES_VOLUME_MUTE,
+			    &res, sizeof(res));
+			break;
+		default:
+			volume_destroy_soundinfo(si);
+			close(fd);
+			err(1, "volume_main: invalid cmd");
+			break; /* unreached */
+		}
 	}
 }

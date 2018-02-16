@@ -7,6 +7,10 @@
 #include <stdint.h>
 #include <imsg.h>
 
+typedef struct {
+	struct imsgbuf *sound;
+} privinfo_t;
+
 enum priv_cmd {
 	CMD_VOLUME_LEVEL,
 	CMD_VOLUME_MUTE,
@@ -23,6 +27,7 @@ enum priv_res {
 	RES_DESKTOP_TITLE,
 };
 
+privinfo_t *priv_get_info(int);
 void priv_send_cmd(struct imsgbuf *, enum priv_cmd);
 enum priv_cmd priv_get_cmd(struct imsgbuf *);
 void priv_send_res(struct imsgbuf *, enum priv_res, const void *, uint16_t);

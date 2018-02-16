@@ -8,7 +8,21 @@
 #include <stdint.h>
 #include <imsg.h>
 
+#include "calmstatus.h"
 #include "priv.h"
+
+privinfo_t *
+priv_get_info(int fd)
+{
+	privinfo_t *pinfo;
+
+	pinfo = xcalloc(1, sizeof(privinfo_t));
+	pinfo->sound = xcalloc(1, sizeof(struct imsgbuf));
+
+	imsg_init(pinfo->sound, fd);
+
+	return pinfo;
+}
 
 void
 priv_send_cmd(struct imsgbuf *ibuf, enum priv_cmd cmd)
