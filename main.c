@@ -21,6 +21,33 @@ get_info()
 	return info;
 }
 
+static procinfo_t **
+get_procinfo()
+{
+	procinfo_t **info;
+	int volsock[2];
+	int i;
+
+	info = xcalloc(2, sizeof(procinfo_t *));
+	priv_socketpair(volsock);
+
+	for (i = 0; i < 2; i++) {
+		info[i] = xcalloc(1, sizeof(procinfo_t));
+		info[i]->volume = xcalloc(1, sizeof(struct imsgbuf));
+		imsg_init(info[i]->volume, volsock[i]);
+	}
+
+	return info;
+}
+
+void
+destroy_procinfo(procinfo_t *info)
+{
+	imsg_clear(info->volume);
+
+	free(info);
+}
+
 void
 destroy_info(info_t *info)
 {
@@ -33,20 +60,19 @@ int
 main()
 {
 	info_t *info;
+	procinfo_t **procinfo;
 	pthread_t xth, dth, vth;
-	int sock[2];
 
-	if (socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, sock) == -1)
-		err(1, "socketpair");
+	procinfo = get_procinfo();
 
 	if (fork() == 0) {
-		close(sock[0]);
-		volume_main(sock[1]);
+		destroy_procinfo(procinfo[0]);
+		volume_main(procinfo[1]);
 	}
-	close(sock[1]);
+	destroy_procinfo(procinfo[1]);
 
 	info = get_info();
-	info->privinfo = priv_get_info(sock[0]);
+	info->procinfo = procinfo[0];
 
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");

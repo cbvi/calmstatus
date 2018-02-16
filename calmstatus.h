@@ -5,6 +5,10 @@
 
 #include "priv.h"
 
+typedef struct {
+	struct imsgbuf *volume;
+} procinfo_t;
+
 typedef enum {
 	CURRENT_DESKTOP,
 	WINDOW_LIST,
@@ -29,7 +33,7 @@ typedef struct {
 typedef struct {
 	xinfo_t *xinfo;
 	soundinfo_t *soundinfo;
-	privinfo_t *privinfo;
+	procinfo_t *procinfo;
 } info_t;
 
 void *xcalloc(size_t, size_t);
@@ -49,7 +53,7 @@ void *volume_watch_for_changes(void *);
 void volume_destroy_soundinfo(soundinfo_t *);
 int volume_level(struct imsgbuf *);
 int volume_mute(struct imsgbuf *);
-void volume_main(int fd);
+void volume_main(procinfo_t *);
 
 void init_output(void);
 void do_output(info_t *);

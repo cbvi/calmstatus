@@ -45,8 +45,8 @@ do_output(info_t *info)
 	printf(" ");
 
 	/* volume_print_volume(info->soundinfo); */
-	level = volume_level(info->privinfo->volume);
-	mute = volume_mute(info->privinfo->volume);
+	level = volume_level(info->procinfo->volume);
+	mute = volume_mute(info->procinfo->volume);
 	printf("%i%s", level, mute ? " (muted)" : "");
 
 	printf(" ");

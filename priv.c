@@ -11,19 +11,6 @@
 #include "calmstatus.h"
 #include "priv.h"
 
-privinfo_t *
-priv_get_info(int fd)
-{
-	privinfo_t *pinfo;
-
-	pinfo = xcalloc(1, sizeof(privinfo_t));
-	pinfo->volume = xcalloc(1, sizeof(struct imsgbuf));
-
-	imsg_init(pinfo->volume, fd);
-
-	return pinfo;
-}
-
 void
 priv_send_cmd(struct imsgbuf *ibuf, enum priv_cmd cmd)
 {
@@ -82,4 +69,11 @@ priv_get_res(struct imsgbuf *ibuf, struct imsg *imsg)
 		err(1, "imsg_read");
 	if (imsg_get(ibuf, imsg) == -1)
 		err(1, "imsg_get");
+}
+
+void
+priv_socketpair(int *sock)
+{
+	if (socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, sock) == -1)
+		err(1, "socketpair");
 }
