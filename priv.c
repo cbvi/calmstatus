@@ -17,9 +17,9 @@ priv_get_info(int fd)
 	privinfo_t *pinfo;
 
 	pinfo = xcalloc(1, sizeof(privinfo_t));
-	pinfo->sound = xcalloc(1, sizeof(struct imsgbuf));
+	pinfo->volume = xcalloc(1, sizeof(struct imsgbuf));
 
-	imsg_init(pinfo->sound, fd);
+	imsg_init(pinfo->volume, fd);
 
 	return pinfo;
 }

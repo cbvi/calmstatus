@@ -8,7 +8,7 @@
 #include <imsg.h>
 
 typedef struct {
-	struct imsgbuf *sound;
+	struct imsgbuf *volume;
 } privinfo_t;
 
 enum priv_cmd {
