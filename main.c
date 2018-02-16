@@ -1,5 +1,6 @@
 #include <sys/socket.h>
 
+#include <err.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -41,12 +42,14 @@ main()
 	if (fork() == 0) {
 		close(sock[0]);
 		volume_main(sock[1]);
-	} else {
-		close(sock[1]);
 	}
+	close(sock[1]);
 
 	info = get_info();
 	info->privinfo = priv_get_info(sock[0]);
+
+	if (pledge("stdio", NULL) == -1)
+		err(1, "pledge");
 
 	init_output();
 
