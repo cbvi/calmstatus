@@ -34,6 +34,7 @@ do_output(info_t *info)
 {
 	int level, mute;
 	uint32_t curdesktop, actlist[10];
+	char title[MAX_TITLE_LENGTH];
 	size_t tmp;
 
 	if (pthread_mutex_trylock(&mut) != 0)
@@ -45,10 +46,12 @@ do_output(info_t *info)
 
 	curdesktop = xstuff_currentdesktop(info->procinfo->xstuff);
 	xstuff_activeworkspaces(info->procinfo->xstuff, actlist);
+	xstuff_windowtitle(info->procinfo->xstuff, title, sizeof(title));
 
 	for (tmp = 0; tmp < 10; tmp++) {
 		printf("%u ", actlist[tmp]);
 	}
+	printf("%s ", title);
 	printf("\n");
 
 	right();

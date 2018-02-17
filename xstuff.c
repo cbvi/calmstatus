@@ -10,8 +10,6 @@
 
 #include "calmstatus.h"
 
-#define MAX_TITLE_LENGTH 128
-
 typedef struct {
 	xcb_window_t win;
 	atoms_available_t name;
@@ -269,6 +267,16 @@ getworkspacewindowcounts(xinfo_t *xi, uint32_t *count)
 	free(list);
 }
 
+static void
+getcurrentwindowtitle(xinfo_t *xi, char *buf)
+{
+	xcb_window_t win;
+
+	win = getcurrentwindow(xi);
+
+	getwindowtitle(xi, win, buf, MAX_TITLE_LENGTH);
+}
+
 static int
 does_workspace_have_window(uint32_t id, uint32_t *list, uint32_t sz)
 {
@@ -361,6 +369,20 @@ watch_for_x_changes(void *arg)
 	return NULL;
 }
 
+void
+xstuff_windowtitle(struct imsgbuf *ibuf, char *buf, size_t sz)
+{
+	struct imsg imsg;
+
+	priv_send_cmd(ibuf, CMD_DESKTOP_TITLE);
+	priv_get_res(ibuf, &imsg);
+
+	if ((imsg.hdr.len - IMSG_HEADER_SIZE) != sz)
+		err(1, "xstuff_windowtitle: msg wrong size");
+
+	memcpy(buf, (char *)imsg.data, sz);
+}
+
 uint32_t
 xstuff_currentdesktop(struct imsgbuf *ibuf)
 {
@@ -371,7 +393,7 @@ xstuff_currentdesktop(struct imsgbuf *ibuf)
 	priv_get_res(ibuf, &imsg);
 
 	if ((imsg.hdr.len - IMSG_HEADER_SIZE) != sizeof(uint32_t))
-		err(1, "xstuff_Currentdesktop: wrong msg size");
+		err(1, "xstuff_currentdesktop: wrong msg size");
 
 	res = *(int *)imsg.data;
 
@@ -398,6 +420,7 @@ xstuff_main(procinfo_t *info)
 	xinfo_t *xi;
 	enum priv_cmd cmd;
 	uint32_t cur, win[10];
+	char title[MAX_TITLE_LENGTH];
 
 	setproctitle("xstuff");
 
@@ -421,6 +444,9 @@ xstuff_main(procinfo_t *info)
 			    win, 10 * sizeof(uint32_t));
 			break;
 		case CMD_DESKTOP_TITLE:
+			getcurrentwindowtitle(xi, title);
+			priv_send_res(info->xstuff, RES_DESKTOP_TITLE,
+			    title, sizeof(title));
 			break;
 		default:
 			destroy_xinfo(xi);

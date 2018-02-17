@@ -5,6 +5,8 @@
 
 #include "priv.h"
 
+#define MAX_TITLE_LENGTH 128
+
 typedef struct {
 	struct imsgbuf *volume;
 	struct imsgbuf *xstuff;
@@ -45,6 +47,7 @@ void print_workspaces(xinfo_t *);
 void print_title(xinfo_t *);
 void *watch_for_x_changes(void *);
 uint32_t xstuff_currentdesktop(struct imsgbuf *);
+void xstuff_windowtitle(struct imsgbuf *, char *, size_t);
 void xstuff_activeworkspaces(struct imsgbuf *, uint32_t *);
 void xstuff_main(procinfo_t *);
 
