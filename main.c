@@ -1,5 +1,3 @@
-#include <sys/socket.h>
-
 #include <err.h>
 #include <pthread.h>
 #include <stdlib.h>
