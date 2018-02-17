@@ -325,6 +325,7 @@ unwatch_win(xinfo_t *xi, xcb_window_t win)
 	    XCB_CW_EVENT_MASK, &values);
 }
 
+/*
 void *
 watch_for_x_changes(void *arg)
 {
@@ -349,6 +350,7 @@ watch_for_x_changes(void *arg)
 	}
 	return NULL;
 }
+*/
 
 void
 xstuff_windowtitle(struct imsgbuf *ibuf, char *buf, size_t sz)

@@ -8,19 +8,6 @@
 #include "calmstatus.h"
 #include "priv.h"
 
-static info_t *
-get_info()
-{
-	info_t *info;
-
-	info = xcalloc(1, sizeof(info_t));
-
-	info->xinfo = get_xinfo();
-	info->soundinfo = volume_get_soundinfo();
-
-	return info;
-}
-
 static procinfo_t **
 get_procinfo()
 {
@@ -56,47 +43,32 @@ destroy_procinfo(procinfo_t *info)
 	free(info);
 }
 
-void
-destroy_info(info_t *info)
-{
-	destroy_xinfo(info->xinfo);
-	volume_destroy_soundinfo(info->soundinfo);
-	free(info);
-}
-
 int
 main()
 {
-	info_t *info;
-	procinfo_t **procinfo;
-	pthread_t  dth;
+	procinfo_t **info;
 
-	procinfo = get_procinfo();
+	info = get_procinfo();
 
 	if (fork() == 0) {
-		destroy_procinfo(procinfo[0]);
-		return volume_main(procinfo[1]);
+		destroy_procinfo(info[0]);
+		return volume_main(info[1]);
 	}
 
 	if (fork() == 0) {
-		destroy_procinfo(procinfo[0]);
-		return xstuff_main(procinfo[1]);
+		destroy_procinfo(info[0]);
+		return xstuff_main(info[1]);
 	}
 
-	destroy_procinfo(procinfo[1]);
-
-	info = get_info();
-	info->procinfo = procinfo[0];
+	destroy_procinfo(info[1]);
 
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
 
 	init_output();
 
-	pthread_create(&dth, NULL, watch_for_datetime_changes, info);
-
 	for (;;) {
-		do_output(info);
+		do_output(info[0]);
 		sleep(2);
 	}
 

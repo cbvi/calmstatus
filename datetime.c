@@ -5,6 +5,7 @@
 
 #include "calmstatus.h"
 
+/*
 void *
 watch_for_datetime_changes(void *arg)
 {
@@ -27,6 +28,7 @@ watch_for_datetime_changes(void *arg)
 		sleep(60);
 	}
 }
+*/
 
 void
 print_datetime()

@@ -34,12 +34,6 @@ typedef struct {
 	int mute;
 } soundinfo_t;
 
-typedef struct {
-	xinfo_t *xinfo;
-	soundinfo_t *soundinfo;
-	procinfo_t *procinfo;
-} info_t;
-
 void *xcalloc(size_t, size_t);
 
 xinfo_t *get_xinfo(void);
@@ -64,7 +58,7 @@ int volume_mute(struct imsgbuf *);
 int volume_main(procinfo_t *);
 
 void init_output(void);
-void do_output(info_t *);
+void do_output(procinfo_t *);
 
 void destroy_procinfo(procinfo_t *);
 

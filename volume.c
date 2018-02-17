@@ -166,6 +166,7 @@ volume_print_volume(soundinfo_t *si)
 	printf("%s", ms ? " (muted) " : "");
 }
 
+/*
 void *
 volume_watch_for_changes(void *arg)
 {
@@ -197,6 +198,7 @@ volume_watch_for_changes(void *arg)
 			sleep(3);
 	}
 }
+*/
 
 int
 volume_level(struct imsgbuf *ibuf)

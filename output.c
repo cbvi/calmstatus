@@ -30,7 +30,7 @@ void left() { printf("%s", "%{l}"); }
 void right() { printf("%s", "%{r}"); }
 
 void
-do_output(info_t *info)
+do_output(procinfo_t *info)
 {
 	int level, mute;
 	uint32_t curdesktop, actlist[10];
@@ -41,9 +41,9 @@ do_output(info_t *info)
 
 	left();
 
-	curdesktop = xstuff_currentdesktop(info->procinfo->xstuff);
-	xstuff_activeworkspaces(info->procinfo->xstuff, actlist);
-	xstuff_windowtitle(info->procinfo->xstuff, title, sizeof(title));
+	curdesktop = xstuff_currentdesktop(info->xstuff);
+	xstuff_activeworkspaces(info->xstuff, actlist);
+	xstuff_windowtitle(info->xstuff, title, sizeof(title));
 
 	print_workspaces(actlist, curdesktop);
 
@@ -53,8 +53,8 @@ do_output(info_t *info)
 	printf(" ");
 
 	/* volume_print_volume(info->soundinfo); */
-	level = volume_level(info->procinfo->volume);
-	mute = volume_mute(info->procinfo->volume);
+	level = volume_level(info->volume);
+	mute = volume_mute(info->volume);
 	printf("%i%s", level, mute ? " (muted)" : "");
 
 	printf(" ");
@@ -68,13 +68,13 @@ do_output(info_t *info)
 }
 
 int
-output_main(info_t *info)
+output_main(procinfo_t *info)
 {
 	enum priv_cmd cmd;
 	int running = 1;
 
 	while (running) {
-		cmd = priv_get_cmd(info->procinfo->output);
+		cmd = priv_get_cmd(info->output);
 
 		switch (cmd) {
 		case CMD_OUTPUT_DO:
@@ -86,7 +86,7 @@ output_main(info_t *info)
 		}
 	}
 	warnx("output_main: invalid cmd");
-	destroy_procinfo(info->procinfo);
+	destroy_procinfo(info);
 
 	return 1;
 }
