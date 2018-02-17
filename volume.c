@@ -12,6 +12,12 @@
 #include "calmstatus.h"
 #include "priv.h"
 
+typedef struct {
+	int mixer;
+	int master;
+	int mute;
+} soundinfo_t;
+
 static int
 volume_get_mixer()
 {
@@ -131,7 +137,7 @@ volume_get_mute(soundinfo_t *si)
 		return 0;
 }
 
-soundinfo_t *
+static soundinfo_t *
 volume_get_soundinfo()
 {
 	soundinfo_t *si;
@@ -147,23 +153,11 @@ volume_get_soundinfo()
 	return si;
 }
 
-void
+static void
 volume_destroy_soundinfo(soundinfo_t *si)
 {
 	close(si->mixer);
 	free(si);
-}
-
-void
-volume_print_volume(soundinfo_t *si)
-{
-	int volume, ms;
-
-	volume = volume_get_level(si);
-	ms = volume_get_mute(si);
-
-	printf("%i", volume);
-	printf("%s", ms ? " (muted) " : "");
 }
 
 /*

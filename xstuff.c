@@ -10,6 +10,21 @@
 
 #include "calmstatus.h"
 
+typedef enum {
+	CURRENT_DESKTOP,
+	WINDOW_LIST,
+	WINDOW_DESKTOP,
+	CURRENT_WINDOW,
+	WINDOW_NAME,
+	ATOMS_AVAILABLE_MAX
+} atoms_available_t;
+
+typedef struct {
+	xcb_connection_t *conn;
+	xcb_window_t root;
+	xcb_atom_t atoms[ATOMS_AVAILABLE_MAX];
+} xinfo_t;
+
 typedef struct {
 	xcb_window_t win;
 	atoms_available_t name;
@@ -40,7 +55,7 @@ get_atom(xinfo_t *xi, const char *name)
 	return ret;
 }
 
-xinfo_t *
+static xinfo_t *
 get_xinfo()
 {
 	xinfo_t *xi;
@@ -67,7 +82,7 @@ get_xinfo()
 	return xi;
 }
 
-void
+static void
 destroy_xinfo(xinfo_t *xi)
 {
 	free(xi->conn);
@@ -290,19 +305,6 @@ print_workspaces(uint32_t *counts, uint32_t current)
 		}
 		printf(" ");
 	}
-}
-
-void
-print_title(xinfo_t *xi)
-{
-	char title[MAX_TITLE_LENGTH];
-	xcb_window_t win;
-
-	win = getcurrentwindow(xi);
-
-	getwindowtitle(xi, win, title, sizeof(title));
-
-	printf("%s", title);
 }
 
 static void
