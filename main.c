@@ -47,6 +47,7 @@ void
 destroy_procinfo(procinfo_t *info)
 {
 	imsg_clear(info->volume);
+	imsg_clear(info->xstuff);
 
 	free(info);
 }
