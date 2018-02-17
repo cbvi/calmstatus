@@ -21,7 +21,7 @@ void xstuff_activeworkspaces(struct imsgbuf *, uint32_t *);
 int xstuff_main(procinfo_t *);
 
 void print_datetime(void);
-void *watch_for_datetime_changes(void *);
+int datetime_main(procinfo_t *);
 
 void *volume_watch_for_changes(void *);
 int volume_level(struct imsgbuf *);

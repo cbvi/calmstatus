@@ -67,5 +67,7 @@ main()
 
 	init_output();
 
+	datetime_main(info[0]);
+
 	return output_main(info[0]);
 }

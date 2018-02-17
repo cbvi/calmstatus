@@ -1,19 +1,19 @@
-#include <stdio.h>
 #include <err.h>
+#include <pthread.h>
+#include <stdio.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "calmstatus.h"
 
-/*
 void *
 watch_for_datetime_changes(void *arg)
 {
 	time_t clock;
 	struct tm *tp;
-	info_t *info;
+	procinfo_t *info;
 
-	info = (info_t *)arg;
+	info = (procinfo_t *)arg;
 
 	if ((clock = time(NULL)) == -1)
 		err(1, "time");
@@ -28,7 +28,6 @@ watch_for_datetime_changes(void *arg)
 		sleep(60);
 	}
 }
-*/
 
 void
 print_datetime()
@@ -47,4 +46,14 @@ print_datetime()
 		errx(1, "strftime");
 
 	printf("%s", buf);
+}
+
+int
+datetime_main(procinfo_t *info)
+{
+	pthread_t thr;
+
+	pthread_create(&thr, NULL, watch_for_datetime_changes, info);
+
+	return 0;
 }
