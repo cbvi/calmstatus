@@ -33,6 +33,7 @@ priv_get_cmd(struct imsgbuf *ibuf)
 {
 	struct imsg imsg;
 	struct pollfd pfd[1];
+	enum priv_cmd cmd;
 
 	pfd[0].fd = ibuf->fd;
 	pfd[0].events = POLLIN;
@@ -49,7 +50,10 @@ priv_get_cmd(struct imsgbuf *ibuf)
 	if ((imsg.hdr.len - IMSG_HEADER_SIZE) != 0)
 		err(1, "priv_get_cmd: msg wrong size");
 
-	return imsg.hdr.type;
+	cmd = imsg.hdr.type;
+	imsg_free(&imsg);
+
+	return cmd;
 }
 
 void

@@ -372,6 +372,7 @@ xstuff_windowtitle(struct imsgbuf *ibuf, char *buf, size_t sz)
 		err(1, "xstuff_windowtitle: msg wrong size");
 
 	memcpy(buf, (char *)imsg.data, sz);
+	imsg_free(&imsg);
 }
 
 uint32_t
@@ -387,6 +388,7 @@ xstuff_currentdesktop(struct imsgbuf *ibuf)
 		err(1, "xstuff_currentdesktop: wrong msg size");
 
 	res = *(int *)imsg.data;
+	imsg_free(&imsg);
 
 	return res;
 }
@@ -403,6 +405,7 @@ xstuff_activeworkspaces(struct imsgbuf *ibuf, uint32_t *list)
 		err(1, "xstuff_activeworkspaces: wrong msg size");
 
 	memcpy(list, (uint32_t *)imsg.data, 10 * sizeof(uint32_t));
+	imsg_free(&imsg);
 }
 
 int

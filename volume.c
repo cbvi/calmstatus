@@ -230,6 +230,7 @@ volume_mute(struct imsgbuf *ibuf)
 			err(1, "volume_mute: response wrong size");
 
 	res = *(int *)imsg.data;
+	imsg_free(&imsg);
 
 	return res;
 }
