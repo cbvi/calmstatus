@@ -264,4 +264,5 @@ volume_main(procinfo_t *info)
 			break; /* unreached */
 		}
 	}
+	exit(1); /* unreached */
 }

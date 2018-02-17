@@ -1,7 +1,8 @@
+#include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <err.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
@@ -251,6 +252,23 @@ getactiveworkspaces(xinfo_t *xi, uint32_t **ret)
 	return realcount;
 }
 
+static void
+getworkspacewindowcounts(xinfo_t *xi, uint32_t *count)
+{
+	uint32_t listc, *list;
+	uint32_t i;
+
+	listc = getactiveworkspaces(xi, &list);
+
+	memset(count, 0, 10 * sizeof(uint32_t));
+
+	for (i = 0; i < listc; i++) {
+		count[list[i]]++;
+	}
+
+	free(list);
+}
+
 static int
 does_workspace_have_window(uint32_t id, uint32_t *list, uint32_t sz)
 {
@@ -341,4 +359,68 @@ watch_for_x_changes(void *arg)
 		do_output(info);
 	}
 	return NULL;
+}
+
+uint32_t
+xstuff_currentdesktop(struct imsgbuf *ibuf)
+{
+	struct imsg imsg;
+	uint32_t res;
+
+	priv_send_cmd(ibuf, CMD_DESKTOP_CURRENT);
+	priv_get_res(ibuf, &imsg);
+
+	res = *(int *)imsg.data;
+
+	return res;
+}
+
+void
+xstuff_activeworkspaces(struct imsgbuf *ibuf, uint32_t *list)
+{
+	struct imsg imsg;
+
+	priv_send_cmd(ibuf, CMD_DESKTOP_WINDOWS);
+	priv_get_res(ibuf, &imsg);
+
+	memcpy(list, (uint32_t *)imsg.data, 10 * sizeof(uint32_t));
+}
+
+void
+xstuff_main(procinfo_t *info)
+{
+	xinfo_t *xi;
+	enum priv_cmd cmd;
+	uint32_t cur, win[10];
+
+	setproctitle("xstuff");
+
+	xi = get_xinfo();
+
+	if (pledge("stdio", NULL) == -1)
+		err(1, "pledge");
+
+	for (;;) {
+		cmd = priv_get_cmd(info->xstuff);
+
+		switch (cmd) {
+		case CMD_DESKTOP_CURRENT:
+			cur = getcurrentdesktop(xi);
+			priv_send_res(info->xstuff, RES_DESKTOP_CURRENT,
+			    &cur, sizeof(cur));
+			break;
+		case CMD_DESKTOP_WINDOWS:
+			getworkspacewindowcounts(xi, win);
+			priv_send_res(info->xstuff, RES_DESKTOP_WINDOWS,
+			    win, 10 * sizeof(uint32_t));
+			break;
+		case CMD_DESKTOP_TITLE:
+			break;
+		default:
+			destroy_xinfo(xi);
+			err(1, "xstuff_main: invalid cmd");
+			break; /* unreached */
+		}
+	}
+	exit(1); /* unreached */
 }

@@ -7,6 +7,7 @@
 
 typedef struct {
 	struct imsgbuf *volume;
+	struct imsgbuf *xstuff;
 } procinfo_t;
 
 typedef enum {
@@ -43,6 +44,9 @@ void destroy_xinfo(xinfo_t *);
 void print_workspaces(xinfo_t *);
 void print_title(xinfo_t *);
 void *watch_for_x_changes(void *);
+uint32_t xstuff_currentdesktop(struct imsgbuf *);
+void xstuff_activeworkspaces(struct imsgbuf *, uint32_t *);
+void xstuff_main(procinfo_t *);
 
 void print_datetime(void);
 void *watch_for_datetime_changes(void *);

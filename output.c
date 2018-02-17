@@ -33,6 +33,8 @@ void
 do_output(info_t *info)
 {
 	int level, mute;
+	uint32_t curdesktop, actlist[10];
+	size_t tmp;
 
 	if (pthread_mutex_trylock(&mut) != 0)
 		return;
@@ -40,6 +42,14 @@ do_output(info_t *info)
 	left();
 	print_workspaces(info->xinfo);
 	print_title(info->xinfo);
+
+	curdesktop = xstuff_currentdesktop(info->procinfo->xstuff);
+	xstuff_activeworkspaces(info->procinfo->xstuff, actlist);
+
+	for (tmp = 0; tmp < 10; tmp++) {
+		printf("%u ", actlist[tmp]);
+	}
+	printf("\n");
 
 	right();
 	printf(" ");
