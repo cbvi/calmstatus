@@ -66,3 +66,27 @@ do_output(info_t *info)
 
 	pthread_mutex_unlock(&mut);
 }
+
+int
+output_main(info_t *info)
+{
+	enum priv_cmd cmd;
+	int running = 1;
+
+	while (running) {
+		cmd = priv_get_cmd(info->procinfo->output);
+
+		switch (cmd) {
+		case CMD_OUTPUT_DO:
+			do_output(info);
+			break;
+		default:
+			running = 0;
+			break;
+		}
+	}
+	warnx("output_main: invalid cmd");
+	destroy_procinfo(info->procinfo);
+
+	return 1;
+}

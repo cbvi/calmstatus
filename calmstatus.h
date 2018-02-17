@@ -8,6 +8,7 @@
 #define MAX_TITLE_LENGTH 128
 
 typedef struct {
+	struct imsgbuf *output;
 	struct imsgbuf *volume;
 	struct imsgbuf *xstuff;
 } procinfo_t;

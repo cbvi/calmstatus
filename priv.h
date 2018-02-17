@@ -8,6 +8,7 @@
 #include <imsg.h>
 
 enum priv_cmd {
+	CMD_OUTPUT_DO,
 	CMD_VOLUME_LEVEL,
 	CMD_VOLUME_MUTE,
 	CMD_DESKTOP_CURRENT,
