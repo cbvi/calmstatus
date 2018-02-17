@@ -233,18 +233,19 @@ volume_mute(struct imsgbuf *ibuf)
 	return res;
 }
 
-void
+int
 volume_main(procinfo_t *info)
 {
 	soundinfo_t *si;
 	enum priv_cmd cmd;
 	int res;
+	int running = 1;
 
 	setproctitle("volume");
 
 	si = volume_get_soundinfo();
 
-	for (;;) {
+	while (running) {
 		cmd = priv_get_cmd(info->volume);
 
 		switch (cmd) {
@@ -259,10 +260,12 @@ volume_main(procinfo_t *info)
 			    &res, sizeof(res));
 			break;
 		default:
-			volume_destroy_soundinfo(si);
-			err(1, "volume_main: invalid cmd");
-			break; /* unreached */
+			running = 0;
+			break;
 		}
 	}
-	exit(1); /* unreached */
+	warnx("volume_main: invalid cmd");
+	volume_destroy_soundinfo(si);
+	destroy_procinfo(info);
+	return 1;
 }

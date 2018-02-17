@@ -397,13 +397,14 @@ xstuff_activeworkspaces(struct imsgbuf *ibuf, uint32_t *list)
 	memcpy(list, (uint32_t *)imsg.data, 10 * sizeof(uint32_t));
 }
 
-void
+int
 xstuff_main(procinfo_t *info)
 {
 	xinfo_t *xi;
 	enum priv_cmd cmd;
 	uint32_t cur, win[10];
 	char title[MAX_TITLE_LENGTH];
+	int running = 1;
 
 	setproctitle("xstuff");
 
@@ -412,7 +413,7 @@ xstuff_main(procinfo_t *info)
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
 
-	for (;;) {
+	while (running) {
 		cmd = priv_get_cmd(info->xstuff);
 
 		switch (cmd) {
@@ -432,10 +433,13 @@ xstuff_main(procinfo_t *info)
 			    title, sizeof(title));
 			break;
 		default:
-			destroy_xinfo(xi);
-			err(1, "xstuff_main: invalid cmd");
-			break; /* unreached */
+			running = 0;
+			break;
 		}
 	}
-	exit(1); /* unreached */
+	warnx("xstuff_main: invalid cmd");
+	destroy_xinfo(xi);
+	destroy_procinfo(info);
+
+	return 1;
 }

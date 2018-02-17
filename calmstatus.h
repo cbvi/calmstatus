@@ -49,7 +49,7 @@ void *watch_for_x_changes(void *);
 uint32_t xstuff_currentdesktop(struct imsgbuf *);
 void xstuff_windowtitle(struct imsgbuf *, char *, size_t);
 void xstuff_activeworkspaces(struct imsgbuf *, uint32_t *);
-void xstuff_main(procinfo_t *);
+int xstuff_main(procinfo_t *);
 
 void print_datetime(void);
 void *watch_for_datetime_changes(void *);
@@ -60,9 +60,11 @@ void *volume_watch_for_changes(void *);
 void volume_destroy_soundinfo(soundinfo_t *);
 int volume_level(struct imsgbuf *);
 int volume_mute(struct imsgbuf *);
-void volume_main(procinfo_t *);
+int volume_main(procinfo_t *);
 
 void init_output(void);
 void do_output(info_t *);
+
+void destroy_procinfo(procinfo_t *);
 
 #endif

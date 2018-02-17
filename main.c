@@ -70,12 +70,12 @@ main()
 
 	if (fork() == 0) {
 		destroy_procinfo(procinfo[0]);
-		volume_main(procinfo[1]);
+		return volume_main(procinfo[1]);
 	}
 
 	if (fork() == 0) {
 		destroy_procinfo(procinfo[0]);
-		xstuff_main(procinfo[1]);
+		return xstuff_main(procinfo[1]);
 	}
 
 	destroy_procinfo(procinfo[1]);
