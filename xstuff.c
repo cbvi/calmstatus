@@ -149,13 +149,11 @@ getwindowtitle(xinfo_t *xi, xcb_window_t win, char *buf, uint32_t sz)
 
 	if (res->len == 0) {
 		strlcpy(buf, "", sz);
-		goto end;
+	} else {
+		((char *)res->value)[res->len] = '\0';
+		strlcpy(buf, (char *)res->value, sz);
 	}
 
-	((char *)res->value)[res->len] = '\0';
-	strlcpy(buf, (char *)res->value, sz);
-
-end:
 	ret = res->len;
 	destroy_property(res);
 	return ret;
