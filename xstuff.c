@@ -23,6 +23,7 @@ typedef struct {
 	xcb_connection_t *conn;
 	xcb_window_t root;
 	xcb_atom_t atoms[ATOMS_AVAILABLE_MAX];
+	procinfo_t *procinfo;
 } xinfo_t;
 
 typedef struct {
@@ -56,7 +57,7 @@ get_atom(xinfo_t *xi, const char *name)
 }
 
 static xinfo_t *
-get_xinfo()
+get_xinfo(procinfo_t *info)
 {
 	xinfo_t *xi;
 	xcb_connection_t *conn;
@@ -78,6 +79,8 @@ get_xinfo()
 	xi->atoms[WINDOW_DESKTOP] = get_atom(xi, "_NET_WM_DESKTOP");
 	xi->atoms[CURRENT_WINDOW] = get_atom(xi, "_NET_ACTIVE_WINDOW");
 	xi->atoms[WINDOW_NAME] = get_atom(xi, "WM_NAME");
+
+	xi->procinfo = info;
 
 	return xi;
 }
@@ -327,14 +330,18 @@ unwatch_win(xinfo_t *xi, xcb_window_t win)
 	    XCB_CW_EVENT_MASK, &values);
 }
 
-/*
+static void
+xstuff_signal_output(procinfo_t *info)
+{
+	priv_send_cmd(info->output, CMD_OUTPUT_DO);
+}
+
 void *
 watch_for_x_changes(void *arg)
 {
 	xcb_generic_event_t *ev;
 	xcb_window_t curwin, prevwin;
-	info_t *info = (info_t *)arg;
-	xinfo_t *xi = info->xinfo;
+	xinfo_t *xi = (xinfo_t *)arg;
 
 	watch_win(xi, xi->root);
 
@@ -348,11 +355,10 @@ watch_for_x_changes(void *arg)
 			watch_win(xi, curwin);
 			unwatch_win(xi, prevwin);
 		}
-		do_output(info);
+		xstuff_signal_output(xi->procinfo);
 	}
 	return NULL;
 }
-*/
 
 void
 xstuff_windowtitle(struct imsgbuf *ibuf, char *buf, size_t sz)
@@ -404,13 +410,16 @@ xstuff_main(procinfo_t *info)
 {
 	xinfo_t *xi;
 	enum priv_cmd cmd;
+	pthread_t thr;
 	uint32_t cur, win[10];
 	char title[MAX_TITLE_LENGTH];
 	int running = 1;
 
 	setproctitle("xstuff");
 
-	xi = get_xinfo();
+	xi = get_xinfo(info);
+
+	pthread_create(&thr, NULL, watch_for_x_changes, xi);
 
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
@@ -440,6 +449,7 @@ xstuff_main(procinfo_t *info)
 		}
 	}
 	warnx("xstuff_main: invalid cmd");
+	pthread_cancel(thr);
 	destroy_xinfo(xi);
 	destroy_procinfo(info);
 

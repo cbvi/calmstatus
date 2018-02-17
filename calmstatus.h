@@ -30,6 +30,7 @@ int volume_main(procinfo_t *);
 
 void init_output(void);
 void do_output(procinfo_t *);
+int output_main(procinfo_t *);
 
 void destroy_procinfo(procinfo_t *);
 

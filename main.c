@@ -67,10 +67,5 @@ main()
 
 	init_output();
 
-	for (;;) {
-		do_output(info[0]);
-		sleep(2);
-	}
-
-	return 0;
+	return output_main(info[0]);
 }

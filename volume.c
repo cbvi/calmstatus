@@ -3,6 +3,7 @@
 #include <err.h>
 #include <fcntl.h>
 #include <math.h>
+#include <pthread.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -16,6 +17,7 @@ typedef struct {
 	int mixer;
 	int master;
 	int mute;
+	procinfo_t *procinfo;
 } soundinfo_t;
 
 static int
@@ -138,7 +140,7 @@ volume_get_mute(soundinfo_t *si)
 }
 
 static soundinfo_t *
-volume_get_soundinfo()
+volume_get_soundinfo(procinfo_t *procinfo)
 {
 	soundinfo_t *si;
 	int output;
@@ -149,6 +151,7 @@ volume_get_soundinfo()
 	output = volume_get_output_group(si->mixer);
 	si->master = volume_get_master_device(si->mixer, output);
 	si->mute = volume_get_mute_device(si->mixer, output, si->master);
+	si->procinfo = procinfo;
 
 	return si;
 }
@@ -160,27 +163,30 @@ volume_destroy_soundinfo(soundinfo_t *si)
 	free(si);
 }
 
-/*
+static void
+volume_signal_output(procinfo_t *info)
+{
+	priv_send_cmd(info->output, CMD_OUTPUT_DO);
+}
+
 void *
 volume_watch_for_changes(void *arg)
 {
-	info_t *info;
 	soundinfo_t *si;
 	int pvol = -1, pmute = -1;
 	int volume, mute;
 	int ischanging = 0;
 
-	info = (info_t *)arg;
-	si = info->soundinfo;
+	si = (soundinfo_t *)arg;
 
 	for (;;) {
 		volume = volume_get_level(si);
 		mute = volume_get_mute(si);
 		if (volume != pvol) {
-			do_output(info);
+			volume_signal_output(si->procinfo);
 			ischanging = 1;
 		} else if (mute != pmute) {
-			do_output(info);
+			volume_signal_output(si->procinfo);
 			ischanging = 1;
 		} else
 			ischanging = 0;
@@ -192,7 +198,6 @@ volume_watch_for_changes(void *arg)
 			sleep(3);
 	}
 }
-*/
 
 int
 volume_level(struct imsgbuf *ibuf)
@@ -234,12 +239,14 @@ volume_main(procinfo_t *info)
 {
 	soundinfo_t *si;
 	enum priv_cmd cmd;
-	int res;
-	int running = 1;
+	pthread_t thr;
+	int res, running = 1;
 
 	setproctitle("volume");
 
-	si = volume_get_soundinfo();
+	si = volume_get_soundinfo(info);
+
+	pthread_create(&thr, NULL, volume_watch_for_changes, si);
 
 	while (running) {
 		cmd = priv_get_cmd(info->volume);
@@ -261,6 +268,7 @@ volume_main(procinfo_t *info)
 		}
 	}
 	warnx("volume_main: invalid cmd");
+	pthread_cancel(thr);
 	volume_destroy_soundinfo(si);
 	destroy_procinfo(info);
 	return 1;
