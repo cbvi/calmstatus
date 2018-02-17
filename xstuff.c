@@ -277,38 +277,21 @@ getcurrentwindowtitle(xinfo_t *xi, char *buf)
 	getwindowtitle(xi, win, buf, MAX_TITLE_LENGTH);
 }
 
-static int
-does_workspace_have_window(uint32_t id, uint32_t *list, uint32_t sz)
+void
+print_workspaces(uint32_t *counts, uint32_t current)
 {
 	uint32_t i;
 
-	for (i = 0; i < sz; i++) {
-		if (list[i] == id)
-			return 1;
-	}
-	return 0;
-}
-
-void
-print_workspaces(xinfo_t *xi)
-{
-	uint32_t i, cur, sz, *list;
-
-	cur = getcurrentdesktop(xi);
-	sz = getactiveworkspaces(xi, &list);
-
-	for (i = 1; i <= 9; i++) {
-		if (i == cur) {
+	for (i = 1; i < 10; i++) {
+		if (i == current) {
 			printf("!");
-		} else if (does_workspace_have_window(i, list, sz)) {
+		} else if (counts[i] > 0) {
 			printf("+");
 		} else {
 			printf("-");
 		}
 		printf(" ");
 	}
-
-	free(list);
 }
 
 void

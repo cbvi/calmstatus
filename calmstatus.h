@@ -43,7 +43,7 @@ void *xcalloc(size_t, size_t);
 
 xinfo_t *get_xinfo(void);
 void destroy_xinfo(xinfo_t *);
-void print_workspaces(xinfo_t *);
+void print_workspaces(uint32_t *, uint32_t);
 void print_title(xinfo_t *);
 void *watch_for_x_changes(void *);
 uint32_t xstuff_currentdesktop(struct imsgbuf *);
