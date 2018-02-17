@@ -1,8 +1,6 @@
 #ifndef _CALMSTATUS_H
 #define _CALMSTATUS_H
 
-#include <xcb/xcb.h>
-
 #include "priv.h"
 
 #define MAX_TITLE_LENGTH 128
