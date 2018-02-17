@@ -370,6 +370,9 @@ xstuff_currentdesktop(struct imsgbuf *ibuf)
 	priv_send_cmd(ibuf, CMD_DESKTOP_CURRENT);
 	priv_get_res(ibuf, &imsg);
 
+	if ((imsg.hdr.len - IMSG_HEADER_SIZE) != sizeof(uint32_t))
+		err(1, "xstuff_Currentdesktop: wrong msg size");
+
 	res = *(int *)imsg.data;
 
 	return res;
@@ -382,6 +385,9 @@ xstuff_activeworkspaces(struct imsgbuf *ibuf, uint32_t *list)
 
 	priv_send_cmd(ibuf, CMD_DESKTOP_WINDOWS);
 	priv_get_res(ibuf, &imsg);
+
+	if ((imsg.hdr.len - IMSG_HEADER_SIZE) != (10 * sizeof(uint32_t)))
+		err(1, "xstuff_activeworkspaces: wrong msg size");
 
 	memcpy(list, (uint32_t *)imsg.data, 10 * sizeof(uint32_t));
 }
