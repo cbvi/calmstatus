@@ -64,7 +64,7 @@ main()
 {
 	info_t *info;
 	procinfo_t **procinfo;
-	pthread_t xth, dth, vth;
+	pthread_t  dth;
 
 	procinfo = get_procinfo();
 
@@ -88,9 +88,7 @@ main()
 
 	init_output();
 
-	/* pthread_create(&xth, NULL, watch_for_x_changes, info); */
 	pthread_create(&dth, NULL, watch_for_datetime_changes, info);
-	/* pthread_create(&vth, NULL, volume_watch_for_changes, info); */
 
 	for (;;) {
 		do_output(info);
