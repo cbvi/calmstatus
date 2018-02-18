@@ -417,6 +417,7 @@ xstuff_main(procinfo_t *info)
 	uint32_t cur, win[10];
 	char title[MAX_TITLE_LENGTH];
 	int running = 1;
+	int ret = 1;
 
 	setproctitle("xstuff");
 
@@ -446,15 +447,20 @@ xstuff_main(procinfo_t *info)
 			priv_send_res(info->xstuff, RES_DESKTOP_TITLE,
 			    title, sizeof(title));
 			break;
-		default:
+		case CMD_STOP_RIGHT_NOW:
 			running = 0;
+			ret = 0;
+			break;
+		default:
+			warnx("xstuff_main: invalid cmd");
+			running = 0;
+			ret = 1;
 			break;
 		}
 	}
-	warnx("xstuff_main: invalid cmd");
 	pthread_cancel(thr);
 	destroy_xinfo(xi);
 	destroy_procinfo(info);
 
-	return 1;
+	return ret;
 }

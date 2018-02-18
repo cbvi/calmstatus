@@ -242,6 +242,7 @@ volume_main(procinfo_t *info)
 	enum priv_cmd cmd;
 	pthread_t thr;
 	int res, running = 1;
+	int ret = 1;
 
 	setproctitle("volume");
 
@@ -263,14 +264,19 @@ volume_main(procinfo_t *info)
 			priv_send_res(info->volume, RES_VOLUME_MUTE,
 			    &res, sizeof(res));
 			break;
-		default:
+		case CMD_STOP_RIGHT_NOW:
 			running = 0;
+			ret = 0;
+			break;
+		default:
+			warnx("volume_main: invalid cmd");
+			running = 0;
+			ret = 1;
 			break;
 		}
 	}
-	warnx("volume_main: invalid cmd");
 	pthread_cancel(thr);
 	volume_destroy_soundinfo(si);
 	destroy_procinfo(info);
-	return 1;
+	return ret;
 }
