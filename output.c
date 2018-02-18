@@ -28,6 +28,7 @@ xcalloc(size_t n, size_t sz)
 
 void left() { printf("%s", "%{l}"); }
 void right() { printf("%s", "%{r}"); }
+void pad(int i) { printf("%%{O%i}", i); }
 
 void
 do_output(procinfo_t *info)
@@ -55,7 +56,9 @@ do_output(procinfo_t *info)
 	/* volume_print_volume(info->soundinfo); */
 	level = volume_level(info->volume);
 	mute = volume_mute(info->volume);
-	printf("%i%s", level, mute ? " (muted)" : "");
+	printf("%i%%%s", level, mute ? " (muted)" : "");
+
+	pad(100);
 
 	printf(" ");
 	print_datetime();
