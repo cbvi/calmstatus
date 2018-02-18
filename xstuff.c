@@ -387,7 +387,7 @@ xstuff_currentdesktop(struct imsgbuf *ibuf)
 	if ((imsg.hdr.len - IMSG_HEADER_SIZE) != sizeof(uint32_t))
 		err(1, "xstuff_currentdesktop: wrong msg size");
 
-	res = *(int *)imsg.data;
+	res = *(uint32_t *)imsg.data;
 	imsg_free(&imsg);
 
 	return res;
