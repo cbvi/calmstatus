@@ -22,6 +22,9 @@ priv_send_cmd(struct imsgbuf *ibuf, enum priv_cmd cmd)
 	if (poll(pfd, 1, -1) == -1)
 		err(1, "poll");
 
+	if (pfd[0].revents & POLLERR)
+		warn("POLLERR");
+
 	if (imsg_compose(ibuf, cmd, -1, -1, -1, NULL, 0) == -1)
 		err(1, "imsg_compose");
 	if (imsg_flush(ibuf) == -1)
@@ -40,6 +43,9 @@ priv_get_cmd(struct imsgbuf *ibuf)
 
 	if (poll(pfd, 1, -1) == -1)
 		err(1, "poll");
+
+	if (pfd[0].revents & POLLERR)
+		warnx("POLLERR");
 
 	if (imsg_read(ibuf) == -1)
 		errx(1, "imsg_read");

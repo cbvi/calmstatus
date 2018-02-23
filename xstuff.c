@@ -1,4 +1,5 @@
 #include <err.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,6 +38,15 @@ typedef struct {
 	xcb_get_property_reply_t *reply;
 	uint32_t len;
 } propres_t;
+
+static volatile sig_atomic_t running = 1;
+
+static void
+signal_term(int sig)
+{
+	(void)sig;
+	running = 0;
+}
 
 static xcb_atom_t
 get_atom(xinfo_t *xi, const char *name)
@@ -336,6 +346,12 @@ xstuff_signal_output(procinfo_t *info)
 	priv_send_cmd(info->output, CMD_OUTPUT_DO);
 }
 
+static void
+xstuff_goodbye_output(procinfo_t *info)
+{
+	priv_send_cmd(info->output, CMD_GOODBYE);
+}
+
 void *
 watch_for_x_changes(void *arg)
 {
@@ -354,7 +370,12 @@ watch_for_x_changes(void *arg)
 			watch_win(xi, curwin);
 			unwatch_win(xi, prevwin);
 		}
-		xstuff_signal_output(xi->procinfo);
+		if (running)
+			xstuff_signal_output(xi->procinfo);
+		else {
+			xstuff_goodbye_output(xi->procinfo);
+			break;
+		}
 	}
 	return NULL;
 }
@@ -415,10 +436,11 @@ xstuff_main(procinfo_t *info)
 	pthread_t thr;
 	uint32_t cur, win[10];
 	char title[MAX_TITLE_LENGTH];
-	int running = 1;
 	int ret = 1;
 
 	setproctitle("xstuff");
+
+	signal(SIGTERM, signal_term);
 
 	xi = get_xinfo(info);
 
@@ -428,6 +450,7 @@ xstuff_main(procinfo_t *info)
 		err(1, "pledge");
 
 	while (running) {
+
 		cmd = priv_get_cmd(info->xstuff);
 
 		switch (cmd) {
@@ -457,6 +480,8 @@ xstuff_main(procinfo_t *info)
 			break;
 		}
 	}
+	xstuff_goodbye_output(info);
+
 	destroy_xinfo(xi);
 	pthread_join(thr, NULL);
 	destroy_procinfo(info);

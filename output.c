@@ -1,11 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <err.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <syslog.h>
 
 #include "calmstatus.h"
 
 pthread_mutex_t mut;
+
+static volatile sig_atomic_t running = 1;
 
 void
 init_output()
@@ -26,9 +29,23 @@ xcalloc(size_t n, size_t sz)
 	return p;
 }
 
-void left() { printf("%s", "%{l}"); }
-void right() { printf("%s", "%{r}"); }
-void pad(int i) { printf("%%{O%i}", i); }
+static void
+signal_term(int sig)
+{
+	(void)sig;
+	running = 0;
+}
+
+static void
+terminate_processes(procinfo_t *info)
+{
+	priv_send_cmd(info->xstuff, CMD_STOP_RIGHT_NOW);
+	priv_send_cmd(info->volume, CMD_STOP_RIGHT_NOW);
+}
+
+static void left() { printf("%s", "%{l}"); }
+static void right() { printf("%s", "%{r}"); }
+static void pad(int i) { printf("%%{O%i}", i); }
 
 void
 do_output(procinfo_t *info)
@@ -74,7 +91,8 @@ int
 output_main(procinfo_t *info)
 {
 	enum priv_cmd cmd;
-	int running = 1;
+
+	signal(SIGTERM, signal_term);
 
 	while (running) {
 		cmd = priv_get_cmd(info->output);
@@ -83,12 +101,17 @@ output_main(procinfo_t *info)
 		case CMD_OUTPUT_DO:
 			do_output(info);
 			break;
+		case CMD_GOODBYE:
+			running = 0;
+			break;
 		default:
+			warnx("output_main: invalid cmd");
 			running = 0;
 			break;
 		}
 	}
-	warnx("output_main: invalid cmd");
+
+	terminate_processes(info);
 	destroy_procinfo(info);
 
 	return 1;

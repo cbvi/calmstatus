@@ -9,15 +9,6 @@
 
 procinfo_t *procinfo = NULL;
 
-void
-signal_term(int sig)
-{
-	(void)sig;
-	priv_send_cmd(procinfo->volume, CMD_STOP_RIGHT_NOW);
-	priv_send_cmd(procinfo->xstuff, CMD_STOP_RIGHT_NOW);
-	exit(0);
-}
-
 static procinfo_t **
 get_procinfo()
 {
@@ -78,8 +69,6 @@ main()
 	init_output();
 
 	procinfo = info[0];
-
-	signal(SIGTERM, signal_term);
 
 	datetime_main(info[0]);
 

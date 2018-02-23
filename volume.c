@@ -20,6 +20,8 @@ typedef struct {
 	procinfo_t *procinfo;
 } soundinfo_t;
 
+static volatile sig_atomic_t running = 1;
+
 static int
 volume_get_mixer()
 {
@@ -169,6 +171,12 @@ volume_signal_output(procinfo_t *info)
 	priv_send_cmd(info->output, CMD_OUTPUT_DO);
 }
 
+static void
+volume_goodbye_output(procinfo_t *info)
+{
+	priv_send_cmd(info->output, CMD_GOODBYE);
+}
+
 void *
 volume_watch_for_changes(void *arg)
 {
@@ -179,7 +187,7 @@ volume_watch_for_changes(void *arg)
 
 	si = (soundinfo_t *)arg;
 
-	for (;;) {
+	while (running) {
 		volume = volume_get_level(si);
 		mute = volume_get_mute(si);
 		if (volume != pvol) {
@@ -197,6 +205,8 @@ volume_watch_for_changes(void *arg)
 		else
 			sleep(3);
 	}
+	volume_goodbye_output(si->procinfo);
+	return NULL;
 }
 
 int
@@ -241,7 +251,7 @@ volume_main(procinfo_t *info)
 	soundinfo_t *si;
 	enum priv_cmd cmd;
 	pthread_t thr;
-	int res, running = 1;
+	int res;
 	int ret = 1;
 
 	setproctitle("volume");
@@ -275,6 +285,8 @@ volume_main(procinfo_t *info)
 			break;
 		}
 	}
+	volume_goodbye_output(info);
+
 	pthread_cancel(thr);
 	volume_destroy_soundinfo(si);
 	destroy_procinfo(info);

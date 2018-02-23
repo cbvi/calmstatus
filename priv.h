@@ -15,6 +15,7 @@ enum priv_cmd {
 	CMD_DESKTOP_WINDOWS,
 	CMD_DESKTOP_TITLE,
 	CMD_STOP_RIGHT_NOW,
+	CMD_GOODBYE,
 };
 
 enum priv_res {
