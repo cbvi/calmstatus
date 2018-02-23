@@ -153,9 +153,9 @@ getcurrentwindow(xinfo_t *xi)
 	res = get_property(xi, &req);
 
 	if (res->len == 0)
-		errx(1, "couldn't get current window");
-
-	ret = *(xcb_window_t *)res->value;
+		ret = xi->root;
+	else
+		ret = *(xcb_window_t *)res->value;
 
 	destroy_property(res);
 
@@ -201,9 +201,9 @@ getcurrentdesktop(xinfo_t *xi)
 	res = get_property(xi, &req);
 
 	if (res->len == 0)
-		errx(1, "current desktop returned 0 length");
-
-	ret = *(uint32_t *)res->value;
+		ret = 0;
+	else
+		ret = *(uint32_t *)res->value;
 
 	destroy_property(res);
 
