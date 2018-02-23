@@ -88,7 +88,7 @@ get_xinfo(procinfo_t *info)
 static void
 destroy_xinfo(xinfo_t *xi)
 {
-	free(xi->conn);
+	xcb_disconnect(xi->conn);
 	xi->conn = NULL;
 	free(xi);
 }
@@ -339,7 +339,6 @@ xstuff_signal_output(procinfo_t *info)
 void *
 watch_for_x_changes(void *arg)
 {
-	xcb_generic_event_t *ev;
 	xcb_window_t curwin, prevwin;
 	xinfo_t *xi = (xinfo_t *)arg;
 
@@ -348,7 +347,7 @@ watch_for_x_changes(void *arg)
 	curwin = prevwin = getcurrentwindow(xi);
 	watch_win(xi, curwin);
 
-	while ((ev = xcb_wait_for_event(xi->conn)) != NULL) {
+	while (xi->conn != NULL && xcb_wait_for_event(xi->conn) != NULL) {
 		prevwin = curwin;
 		curwin = getcurrentwindow(xi);
 		if (curwin != prevwin) {
@@ -458,8 +457,8 @@ xstuff_main(procinfo_t *info)
 			break;
 		}
 	}
-	pthread_cancel(thr);
 	destroy_xinfo(xi);
+	pthread_join(thr, NULL);
 	destroy_procinfo(info);
 
 	return ret;
