@@ -16,6 +16,7 @@ enum priv_cmd {
 	CMD_DESKTOP_TITLE,
 	CMD_STOP_RIGHT_NOW,
 	CMD_GOODBYE,
+	CMD_TRYAGAIN,
 };
 
 enum priv_res {
@@ -27,6 +28,7 @@ enum priv_res {
 };
 
 void priv_send_cmd(struct imsgbuf *, enum priv_cmd);
+enum priv_cmd priv_wait_cmd(struct imsgbuf *, int);
 enum priv_cmd priv_get_cmd(struct imsgbuf *);
 void priv_send_res(struct imsgbuf *, enum priv_res, const void *, uint16_t);
 void priv_get_res(struct imsgbuf *, struct imsg *);

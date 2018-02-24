@@ -3,6 +3,7 @@
 #include <sys/queue.h>
 #include <sys/uio.h>
 
+#include <assert.h>
 #include <err.h>
 #include <poll.h>
 #include <stdint.h>
@@ -34,15 +35,27 @@ priv_send_cmd(struct imsgbuf *ibuf, enum priv_cmd cmd)
 enum priv_cmd
 priv_get_cmd(struct imsgbuf *ibuf)
 {
+	return priv_wait_cmd(ibuf, -1);
+}
+
+enum priv_cmd
+priv_wait_cmd(struct imsgbuf *ibuf, int timeout)
+{
 	struct imsg imsg;
 	struct pollfd pfd[1];
 	enum priv_cmd cmd;
+	int pr;
 
 	pfd[0].fd = ibuf->fd;
 	pfd[0].events = POLLIN;
 
-	if (poll(pfd, 1, -1) == -1)
+	if ((pr = poll(pfd, 1, timeout)) == -1)
 		err(1, "poll");
+
+	if (pr == 0) {
+		assert(timeout > -1);
+		return CMD_TRYAGAIN;
+	}
 
 	if (pfd[0].revents & POLLERR)
 		warnx("POLLERR");

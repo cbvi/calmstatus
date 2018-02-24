@@ -30,7 +30,7 @@ xcalloc(size_t n, size_t sz)
 }
 
 static void
-signal_term(int sig)
+signal_hdlr(int sig)
 {
 	(void)sig;
 	running = 0;
@@ -92,10 +92,11 @@ output_main(procinfo_t *info)
 {
 	enum priv_cmd cmd;
 
-	signal(SIGTERM, signal_term);
+	signal(SIGTERM, signal_hdlr);
+	signal(SIGCHLD, signal_hdlr);
 
 	while (running) {
-		cmd = priv_get_cmd(info->output);
+		cmd = priv_wait_cmd(info->output, 1000 * 10);
 
 		switch (cmd) {
 		case CMD_OUTPUT_DO:
@@ -103,6 +104,8 @@ output_main(procinfo_t *info)
 			break;
 		case CMD_GOODBYE:
 			running = 0;
+			break;
+		case CMD_TRYAGAIN:
 			break;
 		default:
 			warnx("output_main: invalid cmd");
