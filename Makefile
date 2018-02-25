@@ -6,3 +6,6 @@ FILES=xstuff.c output.c datetime.c volume.c main.c priv.c
 
 all:
 	$(CC) -o calmstatus $(CFLAGS) $(FILES)
+
+release:
+	$(CC) -O2 -o calmstatus $(CFLAGS) $(FILES)
