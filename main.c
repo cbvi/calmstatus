@@ -39,10 +39,10 @@ get_procinfo()
 	for (i = 0; i < 2; i++) {
 		info[i] = xcalloc(1, sizeof(procinfo_t));
 		info[i]->output = xcalloc(1, sizeof(struct imsgbuf));
-		info[i]->volume = xcalloc(1, sizeof(struct imsgbuf));
+		//info[i]->volume = xcalloc(1, sizeof(struct imsgbuf));
 		info[i]->xstuff = xcalloc(1, sizeof(struct imsgbuf));
 		imsg_init(info[i]->output, outsock[i]);
-		imsg_init(info[i]->volume, volsock[i]);
+		//imsg_init(info[i]->volume, volsock[i]);
 		imsg_init(info[i]->xstuff, xsock[i]);
 	}
 
@@ -53,7 +53,7 @@ void
 destroy_procinfo(procinfo_t *info)
 {
 	imsg_clear(info->output);
-	imsg_clear(info->volume);
+	//imsg_clear(info->volume);
 	imsg_clear(info->xstuff);
 
 	free(info);
@@ -66,10 +66,10 @@ main()
 
 	info = get_procinfo();
 
-	if (fork() == 0) {
+	/*if (fork() == 0) {
 		destroy_procinfo(info[0]);
 		return volume_main(info[1]);
-	}
+	}*/
 
 	if (fork() == 0) {
 		destroy_procinfo(info[0]);

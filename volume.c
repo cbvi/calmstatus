@@ -28,6 +28,11 @@
 #include "calmstatus.h"
 #include "priv.h"
 
+/* XXX
+ * This won't work now that userland is shut off from accessing the
+ * mixer directly. Needs to be updated to work with the new async API.
+ */
+
 typedef struct {
 	int mixer;
 	int master;

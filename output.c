@@ -55,7 +55,7 @@ static void
 terminate_processes(procinfo_t *info)
 {
 	priv_send_cmd(info->xstuff, CMD_STOP_RIGHT_NOW);
-	priv_send_cmd(info->volume, CMD_STOP_RIGHT_NOW);
+	//priv_send_cmd(info->volume, CMD_STOP_RIGHT_NOW);
 }
 
 static void left() { printf("%s", "%{l}"); }
@@ -65,7 +65,7 @@ static void pad(int i) { printf("%%{O%i}", i); }
 void
 do_output(procinfo_t *info)
 {
-	int level, mute;
+	//int level, mute;
 	uint32_t curdesktop, actlist[10];
 	char title[MAX_TITLE_LENGTH];
 
@@ -86,9 +86,9 @@ do_output(procinfo_t *info)
 	printf(" ");
 
 	/* volume_print_volume(info->soundinfo); */
-	level = volume_level(info->volume);
+	/*level = volume_level(info->volume);
 	mute = volume_mute(info->volume);
-	printf("%i%%%s", level, mute ? " (muted)" : "");
+	printf("%i%%%s", level, mute ? " (muted)" : "");*/
 
 	pad(100);
 

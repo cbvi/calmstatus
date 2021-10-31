@@ -22,7 +22,7 @@
 
 typedef struct {
 	struct imsgbuf *output;
-	struct imsgbuf *volume;
+	//struct imsgbuf *volume;
 	struct imsgbuf *xstuff;
 } procinfo_t;
 
@@ -38,10 +38,10 @@ int xstuff_main(procinfo_t *);
 void print_datetime(void);
 int datetime_main(procinfo_t *);
 
-void *volume_watch_for_changes(void *);
+/*void *volume_watch_for_changes(void *);
 int volume_level(struct imsgbuf *);
 int volume_mute(struct imsgbuf *);
-int volume_main(procinfo_t *);
+int volume_main(procinfo_t *);*/
 
 void init_output(void);
 void do_output(procinfo_t *);
